@@ -16,7 +16,7 @@ mod loader;
 mod sys;
 pub mod video;
 
-use std::ffi::{CString, c_int, c_void};
+use std::ffi::{CStr, CString, c_int, c_void};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex};
@@ -415,6 +415,235 @@ impl MediaPlayer {
         // SAFETY: live player.
         unsafe { (self.lib.api().libvlc_audio_set_mute)(self.raw, c_int::from(muted)) }
     }
+
+    // ---- Tracks, delays, video controls ------------------------------------
+
+    /// Copies a libVLC-owned linked list into Rust-owned values, then releases
+    /// the list through libVLC's allocator.
+    ///
+    /// # Safety
+    /// `head` must be a list returned by one of libVLC's `*_get_*_description`
+    /// calls on this player, and must not be used afterwards.
+    unsafe fn collect_tracks(
+        api: &sys::Api,
+        head: *mut sys::libvlc_track_description_t,
+    ) -> Vec<Track> {
+        let mut tracks = Vec::new();
+        let mut node = head;
+        while !node.is_null() {
+            // SAFETY: libVLC keeps every node alive until the list is released.
+            let current = unsafe { &*node };
+            let name = if current.psz_name.is_null() {
+                String::new()
+            } else {
+                // SAFETY: libVLC returns a NUL-terminated description string.
+                unsafe { CStr::from_ptr(current.psz_name) }
+                    .to_string_lossy()
+                    .into_owned()
+            };
+            tracks.push(Track {
+                id: current.i_id,
+                name,
+            });
+            node = current.p_next;
+        }
+        // SAFETY: `head` is the owner pointer returned by libVLC.
+        unsafe { (api.libvlc_track_description_list_release)(head) };
+        tracks
+    }
+
+    pub fn audio_tracks(&self) -> Vec<Track> {
+        // SAFETY: live player; the returned list is handed to `collect_tracks`.
+        let head = unsafe { (self.lib.api().libvlc_audio_get_track_description)(self.raw) };
+        // SAFETY: `head` came from the matching libVLC getter.
+        unsafe { Self::collect_tracks(self.lib.api(), head) }
+    }
+
+    pub fn video_tracks(&self) -> Vec<Track> {
+        // SAFETY: as above.
+        let head = unsafe { (self.lib.api().libvlc_video_get_track_description)(self.raw) };
+        // SAFETY: as above.
+        unsafe { Self::collect_tracks(self.lib.api(), head) }
+    }
+
+    pub fn subtitle_tracks(&self) -> Vec<Track> {
+        // SAFETY: as above.
+        let head = unsafe { (self.lib.api().libvlc_video_get_spu_description)(self.raw) };
+        // SAFETY: as above.
+        unsafe { Self::collect_tracks(self.lib.api(), head) }
+    }
+
+    pub fn audio_track(&self) -> i32 {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_audio_get_track)(self.raw) }
+    }
+
+    pub fn set_audio_track(&self, id: i32) -> Result<(), VlcError> {
+        // SAFETY: live player.
+        let rc = unsafe { (self.lib.api().libvlc_audio_set_track)(self.raw, id) };
+        (rc == 0)
+            .then_some(())
+            .ok_or_else(|| VlcError::Call(format!("set_audio_track({id})")))
+    }
+
+    pub fn video_track(&self) -> i32 {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_video_get_track)(self.raw) }
+    }
+
+    pub fn set_video_track(&self, id: i32) -> Result<(), VlcError> {
+        // SAFETY: live player.
+        let rc = unsafe { (self.lib.api().libvlc_video_set_track)(self.raw, id) };
+        (rc == 0)
+            .then_some(())
+            .ok_or_else(|| VlcError::Call(format!("set_video_track({id})")))
+    }
+
+    pub fn subtitle_track(&self) -> i32 {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_video_get_spu)(self.raw) }
+    }
+
+    pub fn set_subtitle_track(&self, id: i32) -> Result<(), VlcError> {
+        // SAFETY: live player.
+        let rc = unsafe { (self.lib.api().libvlc_video_set_spu)(self.raw, id) };
+        (rc == 0)
+            .then_some(())
+            .ok_or_else(|| VlcError::Call(format!("set_subtitle_track({id})")))
+    }
+
+    /// Audio delay in microseconds (negative = audio earlier).
+    pub fn audio_delay_us(&self) -> i64 {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_audio_get_delay)(self.raw) }
+    }
+
+    pub fn set_audio_delay_us(&self, us: i64) -> Result<(), VlcError> {
+        // SAFETY: live player.
+        let rc = unsafe { (self.lib.api().libvlc_audio_set_delay)(self.raw, us) };
+        (rc == 0)
+            .then_some(())
+            .ok_or_else(|| VlcError::Call(format!("set_audio_delay({us})")))
+    }
+
+    /// Subtitle delay in microseconds (positive = subtitles later).
+    pub fn subtitle_delay_us(&self) -> i64 {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_video_get_spu_delay)(self.raw) }
+    }
+
+    pub fn set_subtitle_delay_us(&self, us: i64) -> Result<(), VlcError> {
+        // SAFETY: live player.
+        let rc = unsafe { (self.lib.api().libvlc_video_set_spu_delay)(self.raw, us) };
+        (rc == 0)
+            .then_some(())
+            .ok_or_else(|| VlcError::Call(format!("set_subtitle_delay({us})")))
+    }
+
+    pub fn aspect_ratio(&self) -> Option<String> {
+        // SAFETY: live player.
+        let ptr = unsafe { (self.lib.api().libvlc_video_get_aspect_ratio)(self.raw) };
+        if ptr.is_null() {
+            return None;
+        }
+        // SAFETY: libVLC returned a NUL-terminated string owned by libVLC.
+        let value = unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned();
+        // SAFETY: the string came from libVLC's allocator and is no longer used.
+        unsafe { (self.lib.api().libvlc_free)(ptr.cast()) };
+        Some(value)
+    }
+
+    pub fn set_aspect_ratio(&self, ratio: Option<&str>) {
+        let api = self.lib.api();
+        match ratio {
+            Some(r) => {
+                if let Ok(c) = cstring(r) {
+                    // SAFETY: live player; NUL-terminated string borrowed for the call.
+                    unsafe { (api.libvlc_video_set_aspect_ratio)(self.raw, c.as_ptr()) }
+                }
+            }
+            None => {
+                // SAFETY: NULL resets libVLC to the default aspect ratio.
+                unsafe { (api.libvlc_video_set_aspect_ratio)(self.raw, std::ptr::null()) }
+            }
+        }
+    }
+
+    /// Displays the next frame while paused.
+    pub fn next_frame(&self) {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_media_player_next_frame)(self.raw) }
+    }
+
+    pub fn chapter(&self) -> i32 {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_media_player_get_chapter)(self.raw) }
+    }
+
+    pub fn chapter_count(&self) -> i32 {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_media_player_get_chapter_count)(self.raw) }
+    }
+
+    pub fn set_chapter(&self, chapter: i32) {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_media_player_set_chapter)(self.raw, chapter) }
+    }
+
+    pub fn next_chapter(&self) {
+        // SAFETY: live player.
+        unsafe { (self.lib.api().libvlc_media_player_next_chapter)(self.raw) }
+    }
+
+    /// Saves a snapshot at native resolution; `0` width/height means native.
+    pub fn snapshot(&self, path: &Path) -> Result<(), VlcError> {
+        let c = cstring(&path.to_string_lossy())?;
+        // SAFETY: live player and NUL-terminated path.
+        let rc =
+            unsafe { (self.lib.api().libvlc_video_take_snapshot)(self.raw, 0, c.as_ptr(), 0, 0) };
+        (rc == 0)
+            .then_some(())
+            .ok_or_else(|| VlcError::Call("video_take_snapshot".into()))
+    }
+
+    /// Loads an external subtitle file. Works before and during playback.
+    pub fn add_subtitle_file(&self, path: &Path) -> Result<(), VlcError> {
+        let uri = file_uri(path)?;
+        let c = cstring(&uri)?;
+        // SAFETY: live player, valid enum value and NUL-terminated URI.
+        let rc = unsafe {
+            (self.lib.api().libvlc_media_player_add_slave)(
+                self.raw,
+                sys::libvlc_media_slave_type_subtitle,
+                c.as_ptr(),
+                true,
+            )
+        };
+        (rc == 0)
+            .then_some(())
+            .ok_or_else(|| VlcError::Call("media_player_add_slave".into()))
+    }
+}
+
+/// A named track reported by libVLC.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Track {
+    pub id: i32,
+    pub name: String,
+}
+
+fn file_uri(path: &Path) -> Result<String, VlcError> {
+    let absolute = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir()
+            .map_err(|e| VlcError::InvalidLocation(e.to_string()))?
+            .join(path)
+    };
+    let normalised = absolute.to_string_lossy().replace('\\', "/");
+    Ok(format!("file:///{}", normalised.trim_start_matches('/')))
 }
 
 impl Drop for MediaPlayer {

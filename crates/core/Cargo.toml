@@ -1,6 +1,6 @@
 [package]
 name = "player-core"
-description = "Platform-agnostic player logic: time formatting, telemetry"
+description = "Platform-agnostic player logic: state, queue, playlist, library, settings"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,6 +8,9 @@ publish.workspace = true
 
 [dependencies]
 serde.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+rusqlite.workspace = true
 
 [lints]
 workspace = true

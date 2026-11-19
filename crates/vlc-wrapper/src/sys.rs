@@ -30,6 +30,17 @@ opaque!(
 
 pub type libvlc_time_t = i64;
 pub type libvlc_event_type_t = c_int;
+/// `libvlc_media_slave_type_t` (a C `enum`, i.e. `c_int` on x64).
+pub const libvlc_media_slave_type_subtitle: c_int = 0;
+
+/// `libvlc_track_description_t`: a linked list owned by libVLC, released with
+/// `libvlc_track_description_list_release`.
+#[repr(C)]
+pub struct libvlc_track_description_t {
+    pub i_id: c_int,
+    pub psz_name: *mut c_char,
+    pub p_next: *mut libvlc_track_description_t,
+}
 
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy)]
@@ -145,6 +156,7 @@ api! {
     fn libvlc_media_add_option(*mut libvlc_media_t, *const c_char);
     fn libvlc_media_release(*mut libvlc_media_t);
     fn libvlc_media_get_stats(*mut libvlc_media_t, *mut libvlc_media_stats_t) -> c_int;
+    fn libvlc_media_player_add_slave(*mut libvlc_media_player_t, c_int, *const c_char, bool) -> c_int;
 
     fn libvlc_media_player_new(*mut libvlc_instance_t) -> *mut libvlc_media_player_t;
     fn libvlc_media_player_release(*mut libvlc_media_player_t);
@@ -161,6 +173,40 @@ api! {
     fn libvlc_media_player_get_position(*mut libvlc_media_player_t) -> c_float;
     fn libvlc_media_player_set_position(*mut libvlc_media_player_t, c_float);
     fn libvlc_media_player_set_rate(*mut libvlc_media_player_t, c_float) -> c_int;
+    fn libvlc_media_player_next_frame(*mut libvlc_media_player_t);
+    fn libvlc_media_player_get_chapter(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_media_player_get_chapter_count(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_media_player_set_chapter(*mut libvlc_media_player_t, c_int);
+    fn libvlc_media_player_next_chapter(*mut libvlc_media_player_t);
+    fn libvlc_free(*mut c_void);
+    fn libvlc_track_description_list_release(*mut libvlc_track_description_t);
+
+    fn libvlc_audio_get_track_count(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_audio_get_track_description(*mut libvlc_media_player_t) -> *mut libvlc_track_description_t;
+    fn libvlc_audio_get_track(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_audio_set_track(*mut libvlc_media_player_t, c_int) -> c_int;
+    fn libvlc_audio_get_delay(*mut libvlc_media_player_t) -> i64;
+    fn libvlc_audio_set_delay(*mut libvlc_media_player_t, i64) -> c_int;
+
+    fn libvlc_video_get_track_count(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_video_get_track_description(*mut libvlc_media_player_t) -> *mut libvlc_track_description_t;
+    fn libvlc_video_get_track(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_video_set_track(*mut libvlc_media_player_t, c_int) -> c_int;
+    fn libvlc_video_get_spu_count(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_video_get_spu_description(*mut libvlc_media_player_t) -> *mut libvlc_track_description_t;
+    fn libvlc_video_get_spu(*mut libvlc_media_player_t) -> c_int;
+    fn libvlc_video_set_spu(*mut libvlc_media_player_t, c_int) -> c_int;
+    fn libvlc_video_get_spu_delay(*mut libvlc_media_player_t) -> i64;
+    fn libvlc_video_set_spu_delay(*mut libvlc_media_player_t, i64) -> c_int;
+    fn libvlc_video_get_aspect_ratio(*mut libvlc_media_player_t) -> *mut c_char;
+    fn libvlc_video_set_aspect_ratio(*mut libvlc_media_player_t, *const c_char);
+    fn libvlc_video_take_snapshot(
+        *mut libvlc_media_player_t,
+        c_uint,
+        *const c_char,
+        c_uint,
+        c_uint,
+    ) -> c_int;
 
     fn libvlc_audio_get_mute(*mut libvlc_media_player_t) -> c_int;
     fn libvlc_audio_set_mute(*mut libvlc_media_player_t, c_int);
@@ -191,5 +237,8 @@ mod tests {
         assert_eq!(size_of::<libvlc_media_stats_t>(), 15 * 4);
         assert_eq!(std::mem::offset_of!(libvlc_event_t, u), 16);
         assert_eq!(align_of::<libvlc_event_u>(), 8);
+        // i_id(4) + padding(4) + two pointers(8 each) on MSVC x64.
+        assert_eq!(size_of::<libvlc_track_description_t>(), 24);
+        assert_eq!(std::mem::offset_of!(libvlc_track_description_t, p_next), 16);
     }
 }
