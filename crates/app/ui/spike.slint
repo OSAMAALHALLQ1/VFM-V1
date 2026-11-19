@@ -1,0 +1,139 @@
+export global SpikeTheme {
+    out property <color> background: #0f0f0f;
+    out property <color> surface: #1b1b1be8;
+    out property <color> text: #b8b8b8;
+    out property <color> muted: #888888;
+    out property <color> accent: #d58012;
+    out property <color> track: #080808;
+    out property <color> hover: #373737;
+    out property <color> pressed: #855009;
+    out property <color> control: #262626;
+    out property <color> on-accent: #101010;
+    out property <length> gutter: 20px;
+    out property <length> radius: 8px;
+    out property <length> body: 14px;
+}
+
+component Control inherits Rectangle {
+    in property <string> label;
+    in property <bool> accent: false;
+    callback activated();
+    border-radius: SpikeTheme.radius;
+    background: touch.pressed ? SpikeTheme.pressed : touch.has-hover ? SpikeTheme.hover : self.accent ? SpikeTheme.accent : SpikeTheme.control;
+    Text { text: root.label; color: root.accent ? SpikeTheme.on-accent : SpikeTheme.text; font-size: SpikeTheme.body; horizontal-alignment: center; vertical-alignment: center; }
+    touch := TouchArea { clicked => { root.activated(); } }
+}
+
+export component SpikeWindow inherits Window {
+    title: "Player — Phase 0";
+    preferred-width: 1280px;
+    preferred-height: 720px;
+    min-width: 720px;
+    min-height: 420px;
+    background: SpikeTheme.background;
+    default-font-family: "Segoe UI";
+    in property <image> video-frame;
+    in property <string> media-title: "No media";
+    in property <string> telemetry: "Waiting for video…";
+    in property <string> elapsed: "00:00:00";
+    in property <string> total: "00:00:00";
+    in property <string> status: "Opening";
+    in property <float> progress: 0;
+    in property <float> volume: 1;
+    in property <bool> playing: false;
+    in property <bool> muted: false;
+    in-out property <bool> rtl: false;
+    callback toggle-play();
+    callback stop-play();
+    callback seek(float);
+    callback relative-seek(int);
+    callback change-volume(float);
+    callback toggle-mute();
+    callback toggle-fullscreen();
+
+    Image { source: root.video-frame; width: parent.width; height: parent.height; image-fit: contain; }
+    Rectangle {
+        x: SpikeTheme.gutter; y: SpikeTheme.gutter;
+        width: parent.width - 2 * SpikeTheme.gutter; height: 74px;
+        background: SpikeTheme.surface; border-radius: SpikeTheme.radius;
+        Text {
+            x: root.rtl ? 140px : 16px; y: 10px; width: parent.width - 156px; height: 24px;
+            text: root.media-title; color: SpikeTheme.text; font-size: 16px;
+            horizontal-alignment: root.rtl ? right : left; overflow: elide;
+        }
+        Text {
+            x: root.rtl ? 140px : 16px; y: 38px; width: parent.width - 156px; height: 22px;
+            text: root.telemetry; color: SpikeTheme.muted; font-size: 12px;
+            horizontal-alignment: root.rtl ? right : left;
+        }
+        Control {
+            x: root.rtl ? 16px : parent.width - 124px; y: 17px; width: 108px; height: 40px;
+            label: root.rtl ? "English" : "العربية";
+            activated => { root.rtl = !root.rtl; }
+        }
+    }
+    Rectangle {
+        x: SpikeTheme.gutter; y: parent.height - self.height - SpikeTheme.gutter;
+        width: parent.width - 2 * SpikeTheme.gutter; height: 108px;
+        background: SpikeTheme.surface; border-radius: SpikeTheme.radius;
+        Text { x: 16px; y: 12px; width: 84px; height: 20px; text: root.elapsed; color: SpikeTheme.text; font-size: 13px; }
+        Text { x: parent.width - 100px; y: 12px; width: 84px; height: 20px; text: root.total; color: SpikeTheme.text; font-size: 13px; horizontal-alignment: right; }
+        Rectangle {
+            x: 112px; y: 18px; width: parent.width - 224px; height: 8px;
+            border-radius: 4px; background: SpikeTheme.track;
+            Rectangle { x: 0px; width: parent.width * root.progress; height: parent.height; border-radius: 4px; background: SpikeTheme.accent; }
+            Rectangle { x: (parent.width - self.width) * root.progress; y: -4px; width: 8px; height: 16px; border-radius: 4px; background: SpikeTheme.accent; }
+            seek-touch := TouchArea {
+                y: -10px; height: parent.height + 20px;
+                clicked => { root.seek(self.mouse-x / self.width); }
+                moved => { if self.pressed { root.seek(self.mouse-x / self.width); } }
+            }
+        }
+        Control {
+            x: root.rtl ? parent.width - 126px : 16px; y: 50px; width: 110px; height: 40px; accent: true;
+            label: root.rtl ? (root.playing ? "إيقاف مؤقت" : "تشغيل") : (root.playing ? "Pause" : "Play");
+            activated => { root.toggle-play(); }
+        }
+        Control {
+            x: root.rtl ? parent.width - 214px : 136px; y: 50px; width: 78px; height: 40px;
+            label: root.rtl ? "إيقاف" : "Stop"; activated => { root.stop-play(); }
+        }
+        Text {
+            x: root.rtl ? 372px : 230px; y: 50px; width: parent.width - 610px; height: 40px;
+            text: root.status; color: SpikeTheme.muted; font-size: 13px;
+            horizontal-alignment: root.rtl ? right : left; vertical-alignment: center;
+        }
+        Control {
+            x: root.rtl ? 16px : parent.width - 96px; y: 50px; width: 80px; height: 40px;
+            label: root.rtl ? "ملء الشاشة" : "Full"; activated => { root.toggle-fullscreen(); }
+        }
+        Control {
+            x: root.rtl ? 106px : parent.width - 352px; y: 50px; width: 70px; height: 40px;
+            label: root.rtl ? (root.muted ? "صوت" : "كتم") : (root.muted ? "Unmute" : "Mute");
+            activated => { root.toggle-mute(); }
+        }
+        Rectangle {
+            x: root.rtl ? 190px : parent.width - 268px; y: 66px; width: 156px; height: 8px;
+            background: SpikeTheme.track; border-radius: 4px;
+            Rectangle { x: 0px; width: parent.width * root.volume; height: parent.height; background: SpikeTheme.accent; border-radius: 4px; }
+            volume-touch := TouchArea {
+                y: -12px; height: 32px;
+                clicked => { root.change-volume(self.mouse-x / self.width); }
+                moved => { if self.pressed { root.change-volume(self.mouse-x / self.width); } }
+            }
+        }
+    }
+    focus := FocusScope {
+        key-pressed(event) => {
+            if event.text == " " { root.toggle-play(); return accept; }
+            if event.text == "m" || event.text == "M" { root.toggle-mute(); return accept; }
+            if event.text == "f" || event.text == "F" { root.toggle-fullscreen(); return accept; }
+            if event.text == "l" || event.text == "L" { root.rtl = !root.rtl; return accept; }
+            if event.text == Key.LeftArrow { root.relative-seek(-5); return accept; }
+            if event.text == Key.RightArrow { root.relative-seek(5); return accept; }
+            if event.text == "s" || event.text == "S" { root.stop-play(); return accept; }
+            return reject;
+        }
+    }
+    forward-focus: focus;
+}

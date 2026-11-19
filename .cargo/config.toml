@@ -1,0 +1,2 @@
+[env]
+LIBVLC_PATH = { value = "third_party/vlc-3.0.24", relative = true, force = false }
