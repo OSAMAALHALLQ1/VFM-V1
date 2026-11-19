@@ -1,0 +1,66 @@
+startup: showing renderer before playback initialization
+startup: renderer ready
+startup: installing rendering notifier
+startup: entering UI event loop
+libVLC: 3.0.24 Vetinari | runtime: D:\تجاربي\VLC MAIN QODER\third_party\vlc-3.0.24
+startup: creating playback instance
+startup: playback instance ready
+event=Stopped
+event=Opening
+event=Playing
+t=1.67 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=2.67 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=3.67 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=4.68 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=5.68 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=6.68 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=7.69 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=8.69 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=9.69 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=10.70 callbacks=6 rendered=1 overwritten=4 decoded=9 lost=0
+t=11.87 callbacks=28 rendered=6 overwritten=21 decoded=121 lost=13
+t=12.89 callbacks=54 rendered=15 overwritten=38 decoded=187 lost=19
+t=13.96 callbacks=79 rendered=23 overwritten=54 decoded=239 lost=24
+t=15.01 callbacks=105 rendered=32 overwritten=71 decoded=301 lost=31
+t=16.03 callbacks=131 rendered=41 overwritten=89 decoded=357 lost=36
+t=17.05 callbacks=157 rendered=50 overwritten=106 decoded=441 lost=42
+t=18.09 callbacks=181 rendered=58 overwritten=122 decoded=495 lost=47
+t=19.16 callbacks=204 rendered=65 overwritten=138 decoded=567 lost=57
+t=20.26 callbacks=227 rendered=73 overwritten=152 decoded=631 lost=67
+t=21.28 callbacks=247 rendered=80 overwritten=166 decoded=675 lost=74
+t=22.32 callbacks=269 rendered=87 overwritten=180 decoded=761 lost=88
+{
+  "media": "D:\\تجاربي\\VLC MAIN QODER\\media\\h264_2160p30.mp4",
+  "width": 3840,
+  "height": 2160,
+  "chroma": "RV32/BGRX -> RGBA",
+  "decoder": "software (avcodec-hw=none)",
+  "renderer": "winit-femtovg/OpenGL",
+  "warmup_seconds": 3,
+  "measured_seconds": 20.1206839,
+  "callbacks": 285,
+  "ui_supplied": 93,
+  "rendered_unique": 92,
+  "callback_fps": 14.1645284731102,
+  "rendered_fps": 4.572409191319784,
+  "overwritten_unread": 191,
+  "starved": 0,
+  "supplied_not_rendered": 1,
+  "libvlc_decoded": 791,
+  "libvlc_displayed": 276,
+  "libvlc_lost": 93,
+  "copy_swizzle_ms": {
+    "count": 93,
+    "mean": 70.72583870967739,
+    "min": 49.2905,
+    "p95": 95.6038,
+    "max": 161.32840000000002
+  },
+  "render_gap_ms": {
+    "count": 91,
+    "mean": 137.2765340659341,
+    "min": 97.9313,
+    "p95": 192.6686,
+    "max": 334.1128
+  }
+}

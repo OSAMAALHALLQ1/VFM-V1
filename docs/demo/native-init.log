@@ -1,0 +1,23 @@
+native probe: DLLs loaded
+native probe: instance 2534921021840 elapsed 77.61845909999988
+[0000024e35112ad0] main libvlc debug: VLC media player - 3.0.24 Vetinari
+[0000024e35112ad0] main libvlc debug: Copyright © 1996-2026 the VideoLAN team
+[0000024e35112ad0] main libvlc debug: revision 3.0.24-rc1-0-g6de05adcba
+[0000024e35112ad0] main libvlc debug: configured with /builds/videolan/vlc/extras/package/win32/../../../configure  '--enable-lua' '--enable-faad' '--enable-flac' '--enable-theora' '--enable-avcodec' '--enable-merge-ffmpeg' '--enable-mpc' '--enable-libass' '--enable-live555' '--enable-shout' '--enable-goom' '--enable-sse' '--enable-mmx' '--enable-libcddb' '--enable-zvbi' '--disable-telx' '--enable-nls' '--host=x86_64-w64-mingw32' '--with-contrib=../contrib/x86_64-w64-mingw32' '--with-breakpad=https://win.crashes.videolan.org' '--enable-qt' '--enable-skins2' '--enable-update-check' '--enable-dvdread' '--enable-caca' 'host_alias=x86_64-w64-mingw32' 'CFLAGS= -D__MSVCRT_VERSION__=0x700 -D_WIN32_WINNT=0x0502 -DWINVER=0x0502  -g' 'CPPFLAGS= -D__MSVCRT_VERSION__=0x700 -D_WIN32_WINNT=0x0502 -DWINVER=0x0502' 'CXXFLAGS= -D__MSVCRT_VERSION__=0x700 -D_WIN32_WINNT=0x0502 -DWINVER=0x0502  -g' 'PKG_CONFIG=pkg-config' 'PKG_CONFIG_LIBDIR=/usr/x86_64-w64-mingw32/lib/pkgconfig:/usr/lib/x86_64-w64-mingw32/pkgconfig'
+[0000024e35112ad0] main libvlc debug: using multimedia timers as clock source
+[0000024e35112ad0] main libvlc debug:  min period: 1 ms, max period: 1000000 ms
+[0000024e35112ad0] main libvlc debug: searching plug-in modules
+[0000024e35112ad0] main libvlc debug: loading plugins cache file D:\تجاربي\VLC MAIN QODER\third_party\vlc-3.0.24\plugins\plugins.dat
+[0000024e35112ad0] main libvlc warning: cannot read D:\تجاربي\VLC MAIN QODER\third_party\vlc-3.0.24\plugins\plugins.dat: No error
+[0000024e35112ad0] main libvlc debug: recursively browsing `D:\تجاربي\VLC MAIN QODER\third_party\vlc-3.0.24\plugins'
+[0000024e35112ad0] main libvlc debug: plug-ins loaded: 493 modules
+[0000024e35112da0] main logger debug: looking for logger module matching "any": 2 candidates
+[0000024e35112da0] main logger debug: using logger module "console"
+[0000024e35112ad0] main libvlc debug: translation test: code is "C"
+[0000024e3511eee0] main keystore debug: looking for keystore module matching "memory": 3 candidates
+[0000024e3511eee0] main keystore debug: using keystore module "memory"
+[0000024e35112ad0] main libvlc debug: CPU has capabilities MMX MMXEXT SSE SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 FPU 
+[0000024e35112ad0] main libvlc debug: exiting
+[0000024e35112ad0] main libvlc debug: no exit handler
+[0000024e35112ad0] main libvlc debug: removing all interfaces
+[0000024e3511eee0] main keystore debug: removing module "memory"

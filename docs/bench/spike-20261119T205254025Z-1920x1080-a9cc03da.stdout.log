@@ -1,0 +1,52 @@
+startup: showing renderer before playback initialization
+startup: renderer ready
+startup: installing rendering notifier
+startup: entering UI event loop
+libVLC: 3.0.24 Vetinari | runtime: D:\تجاربي\VLC MAIN QODER\third_party\vlc-3.0.24
+startup: creating playback instance
+startup: playback instance ready
+event=Stopped
+event=Opening
+event=Playing
+t=1.77 callbacks=69 rendered=0 overwritten=68 decoded=171 lost=0
+t=2.78 callbacks=129 rendered=0 overwritten=92 decoded=291 lost=0
+t=3.78 callbacks=189 rendered=35 overwritten=106 decoded=381 lost=0
+t=4.82 callbacks=251 rendered=68 overwritten=135 decoded=501 lost=0
+t=5.83 callbacks=312 rendered=99 overwritten=165 decoded=621 lost=0
+t=6.83 callbacks=372 rendered=148 overwritten=176 decoded=771 lost=0
+t=7.84 callbacks=432 rendered=185 overwritten=199 decoded=891 lost=0
+{
+  "media": "D:\\تجاربي\\VLC MAIN QODER\\media\\h264_1080p60.mp4",
+  "width": 1920,
+  "height": 1080,
+  "chroma": "RV32/BGRX -> RGBA",
+  "decoder": "software (avcodec-hw=none)",
+  "renderer": "winit-femtovg/OpenGL",
+  "warmup_seconds": 3,
+  "measured_seconds": 5.0077128,
+  "callbacks": 300,
+  "ui_supplied": 194,
+  "rendered_unique": 193,
+  "callback_fps": 59.90758894958992,
+  "rendered_fps": 38.54054889090285,
+  "overwritten_unread": 107,
+  "starved": 0,
+  "supplied_not_rendered": 1,
+  "libvlc_decoded": 628,
+  "libvlc_displayed": 314,
+  "libvlc_lost": 0,
+  "copy_swizzle_ms": {
+    "count": 194,
+    "mean": 12.482932474226798,
+    "min": 6.9008,
+    "p95": 22.001199999999997,
+    "max": 38.2976
+  },
+  "render_gap_ms": {
+    "count": 192,
+    "mean": 25.85729895833334,
+    "min": 15.972299999999999,
+    "p95": 44.3401,
+    "max": 65.05160000000001
+  }
+}

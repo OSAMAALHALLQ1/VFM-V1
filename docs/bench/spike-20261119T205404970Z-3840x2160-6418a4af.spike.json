@@ -1,0 +1,35 @@
+{
+  "media": "D:\\تجاربي\\VLC MAIN QODER\\media\\h264_2160p30.mp4",
+  "width": 3840,
+  "height": 2160,
+  "chroma": "RV32/BGRX -> RGBA",
+  "decoder": "software (avcodec-hw=none)",
+  "renderer": "winit-femtovg/OpenGL",
+  "warmup_seconds": 3,
+  "measured_seconds": 6.2696216,
+  "callbacks": 84,
+  "ui_supplied": 4,
+  "rendered_unique": 3,
+  "callback_fps": 13.397937763899499,
+  "rendered_fps": 0.478497777282125,
+  "overwritten_unread": 81,
+  "starved": 0,
+  "supplied_not_rendered": 1,
+  "libvlc_decoded": 318,
+  "libvlc_displayed": 201,
+  "libvlc_lost": 18,
+  "copy_swizzle_ms": {
+    "count": 4,
+    "mean": 317.0717,
+    "min": 166.51469999999998,
+    "p95": 750.4727,
+    "max": 750.4727
+  },
+  "render_gap_ms": {
+    "count": 2,
+    "mean": 1932.45785,
+    "min": 1463.8328000000001,
+    "p95": 2401.0829,
+    "max": 2401.0829
+  }
+}

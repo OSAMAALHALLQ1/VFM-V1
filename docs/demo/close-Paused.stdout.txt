@@ -1,0 +1,15 @@
+startup: showing renderer before playback initialization
+startup: renderer ready
+startup: installing rendering notifier
+startup: entering UI event loop
+libVLC: 3.0.24 Vetinari | runtime: D:\تجاربي\VLC MAIN QODER\third_party\vlc-3.0.24
+startup: creating playback instance
+startup: playback instance ready
+event=Stopped
+event=Opening
+event=Playing
+t=2.24 callbacks=97 rendered=0 overwritten=96 decoded=141 lost=0
+t=3.25 callbacks=158 rendered=12 overwritten=111 decoded=351 lost=0
+t=4.27 callbacks=219 rendered=64 overwritten=120 decoded=471 lost=0
+t=5.29 callbacks=281 rendered=113 overwritten=132 decoded=559 lost=0
+event=Paused

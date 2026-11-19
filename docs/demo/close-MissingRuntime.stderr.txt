@@ -1,0 +1,2 @@
+libVLC plugins directory missing: D:\تجاربي\VLC MAIN QODER\media\plugins
+libVLC plugins directory missing: D:\تجاربي\VLC MAIN QODER\media\plugins

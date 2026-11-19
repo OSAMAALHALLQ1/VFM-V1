@@ -1,0 +1,30 @@
+startup: showing renderer before playback initialization
+startup: renderer ready
+startup: installing rendering notifier
+startup: entering UI event loop
+libVLC: 3.0.24 Vetinari | runtime: D:\تجاربي\VLC MAIN QODER\third_party\vlc-3.0.24
+startup: creating playback instance
+startup: playback instance ready
+event=Stopped
+event=Opening
+event=Playing
+t=10.32 callbacks=354 rendered=0 overwritten=352 decoded=41 lost=7
+t=11.32 callbacks=368 rendered=14 overwritten=354 decoded=884 lost=43
+t=12.33 callbacks=382 rendered=27 overwritten=354 decoded=926 lost=43
+t=13.33 callbacks=395 rendered=41 overwritten=354 decoded=989 lost=43
+t=14.33 callbacks=409 rendered=55 overwritten=354 decoded=1053 lost=48
+t=15.41 callbacks=424 rendered=68 overwritten=354 decoded=1141 lost=48
+t=16.59 callbacks=440 rendered=79 overwritten=359 decoded=1195 lost=48
+t=17.59 callbacks=453 rendered=80 overwritten=360 decoded=1267 lost=48
+t=18.59 callbacks=466 rendered=80 overwritten=360 decoded=1291 lost=48
+t=19.61 callbacks=480 rendered=80 overwritten=360 decoded=1383 lost=53
+t=20.61 callbacks=493 rendered=80 overwritten=360 decoded=1455 lost=53
+t=21.63 callbacks=506 rendered=80 overwritten=360 decoded=1500 lost=53
+t=22.63 callbacks=519 rendered=80 overwritten=360 decoded=1568 lost=53
+t=23.64 callbacks=532 rendered=80 overwritten=360 decoded=1635 lost=53
+t=24.65 callbacks=577 rendered=80 overwritten=373 decoded=1839 lost=58
+t=25.66 callbacks=638 rendered=80 overwritten=383 decoded=1929 lost=58
+t=26.66 callbacks=698 rendered=80 overwritten=394 decoded=2051 lost=58
+t=27.67 callbacks=758 rendered=80 overwritten=404 decoded=2051 lost=58
+t=28.68 callbacks=780 rendered=80 overwritten=404 decoded=2051 lost=58
+t=29.68 callbacks=793 rendered=80 overwritten=404 decoded=2183 lost=61

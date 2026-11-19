@@ -1,0 +1,570 @@
+{
+    "schema_version":  1,
+    "started_utc":  "2026-11-19T21:17:53.0728860Z",
+    "finished_utc":  "2026-11-19T21:18:39.1129535Z",
+    "binary":  "D:\\تجاربي\\VLC MAIN QODER\\target\\release\\spike.exe",
+    "media":  "D:\\تجاربي\\VLC MAIN QODER\\media\\h264_1080p60.mp4",
+    "size":  "1920x1080",
+    "requested_measurement_seconds":  20,
+    "observed_process_seconds":  43.6650932,
+    "measurement_complete":  true,
+    "process_id":  17884,
+    "exit_code":  null,
+    "nonzero_exit":  false,
+    "process_exited":  false,
+    "timed_out":  true,
+    "success":  false,
+    "errors":  [
+                   "Process exceeded the 38s deadline; killing only launched PID 17884.",
+                   "Launched process did not exit within 5 seconds after termination.",
+                   "Application report missing: D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T211734591Z-1920x1080-e71cf9cc.spike.json"
+               ],
+    "coverage_warnings":  [
+
+                          ],
+    "environment":  {
+                        "LIBVLC_PATH":  "D:\\تجاربي\\VLC MAIN QODER\\third_party\\vlc-3.0.24",
+                        "SLINT_BACKEND":  "winit-femtovg"
+                    },
+    "hardware":  {
+                     "video_controllers":  [
+                                               {
+                                                   "Name":  "LuminonCore IDDCX Adapter",
+                                                   "VideoProcessor":  null,
+                                                   "DriverVersion":  "1.0.2018.1204",
+                                                   "DriverDate":  "\/Date(1543881600000)\/",
+                                                   "AdapterRAM":  null,
+                                                   "PNPDeviceID":  "LCI\\IDDCX\\1\u002679F5D87\u00263\u0026WHO_CARE"
+                                               },
+                                               {
+                                                   "Name":  "NVIDIA GeForce RTX 3050 Ti Laptop GPU",
+                                                   "VideoProcessor":  "NVIDIA GeForce RTX 3050 Ti Laptop GPU",
+                                                   "DriverVersion":  "30.0.15.1165",
+                                                   "DriverDate":  "\/Date(1643328000000)\/",
+                                                   "AdapterRAM":  4293918720,
+                                                   "PNPDeviceID":  "PCI\\VEN_10DE\u0026DEV_25A0\u0026SUBSYS_12EC1462\u0026REV_A1\\4\u002636DBEA65\u00260\u00260008"
+                                               },
+                                               {
+                                                   "Name":  "Intel(R) UHD Graphics",
+                                                   "VideoProcessor":  "Intel(R) UHD Graphics Family",
+                                                   "DriverVersion":  "30.0.101.2079",
+                                                   "DriverDate":  "\/Date(1653523200000)\/",
+                                                   "AdapterRAM":  1073741824,
+                                                   "PNPDeviceID":  "PCI\\VEN_8086\u0026DEV_9A60\u0026SUBSYS_12EC1462\u0026REV_01\\3\u002611583659\u00262\u002610"
+                                               }
+                                           ],
+                     "processors":  [
+                                        {
+                                            "Name":  "11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz",
+                                            "Manufacturer":  "GenuineIntel",
+                                            "NumberOfCores":  8,
+                                            "NumberOfLogicalProcessors":  16,
+                                            "MaxClockSpeed":  2304
+                                        }
+                                    ],
+                     "query_errors":  [
+
+                                      ],
+                     "logical_processor_count":  16
+                 },
+    "os":  {
+               "Caption":  "Microsoft Windows 11 Home",
+               "Version":  "10.0.22631",
+               "BuildNumber":  "22631",
+               "OSArchitecture":  "64-bit",
+               "TotalVisibleMemorySize":  16471568
+           },
+    "sampling_method":  {
+                            "deadline_seconds":  38,
+                            "gpu_timing":  "PDH primed up to 120 seconds before launch; pre-launch values discarded. Wildcard instances are refreshed per query so a pre-launch expansion cannot exclude the new process. Each CPU tick consumes latest newly queued GPU snapshot with its own timestamp; no old snapshot is reused. Slow counters never block CPU sampling or the process deadline.",
+                            "warmup":  "Exclude first 3 process samples from every summary; retain them in raw output",
+                            "cpu":  "100 * delta(Process.TotalProcessorTime.TotalSeconds) / delta(elapsed_seconds) / Environment.ProcessorCount",
+                            "deadline_policy":  "3 + Seconds + 15 seconds; kill only the Process object launched by this script; wait up to 5 seconds for termination",
+                            "memory":  "Process.WorkingSet64 snapshot in bytes; MiB = bytes / 1048576 (not private bytes or GPU memory)",
+                            "target_interval_seconds":  1,
+                            "clock":  "System.Diagnostics.Stopwatch (actual elapsed deltas; no interpolation)",
+                            "warmup_samples":  3,
+                            "gpu":  "Get-Counter \\GPU Engine(*)\\Utilization Percentage -MaxSamples 1 -SampleInterval 1 repeatedly in a background runspace; refresh wildcard instances each query; pid_PID_* only; preserve each instance; maximum valid engine percentage, NEVER sum engines",
+                            "gpu_unavailable":  "null with explanatory error; missing engines are not treated as zero; summaries use only valid observations"
+                        },
+    "summary":  {
+                    "working_set_bytes":  {
+                                              "count":  20,
+                                              "mean":  426978713.6,
+                                              "max":  464580608
+                                          },
+                    "gpu_unavailable_samples":  20,
+                    "measured_samples":  20,
+                    "gpu_engines":  [
+
+                                    ],
+                    "measured_interval_seconds":  19.962662299999998,
+                    "cpu_percent":  {
+                                        "count":  20,
+                                        "mean":  9.9436510161530585,
+                                        "max":  22.831162855988172
+                                    },
+                    "gpu_errors":  [
+                                       "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                                       "No GPU Engine counter instances matched pid_17884_*. The process may have no exposed GPU engine activity.",
+                                       "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)"
+                                   ],
+                    "working_set_mib":  {
+                                            "count":  20,
+                                            "mean":  407.1986328125,
+                                            "max":  443.05859375
+                                        },
+                    "gpu_max_engine_percent":  {
+                                                   "count":  0,
+                                                   "mean":  null,
+                                                   "max":  null
+                                               }
+                },
+    "artifacts":  {
+                      "samples_csv":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T211734591Z-1920x1080-e71cf9cc.csv",
+                      "stderr":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T211734591Z-1920x1080-e71cf9cc.stderr.log",
+                      "application_report":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T211734591Z-1920x1080-e71cf9cc.spike.json",
+                      "stdout":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T211734591Z-1920x1080-e71cf9cc.stdout.log",
+                      "application_report_exists":  false,
+                      "json":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T211734591Z-1920x1080-e71cf9cc.json"
+                  },
+    "samples":  [
+                    {
+                        "sample":  1,
+                        "timestamp_utc":  "2026-11-19T21:17:57.2261919Z",
+                        "elapsed_seconds":  2.2636612,
+                        "interval_seconds":  1.2758594,
+                        "included_in_summary":  false,
+                        "cpu_total_seconds":  2.1875,
+                        "cpu_delta_seconds":  1.734375,
+                        "cpu_percent":  8.4961115229468067,
+                        "working_set_bytes":  183656448,
+                        "working_set_mib":  175.1484375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  2,
+                        "timestamp_utc":  "2026-11-19T21:18:00.5030876Z",
+                        "elapsed_seconds":  5.5408665,
+                        "interval_seconds":  3.2772053,
+                        "included_in_summary":  false,
+                        "cpu_total_seconds":  14.078125,
+                        "cpu_delta_seconds":  11.890625,
+                        "cpu_percent":  22.676762499438166,
+                        "working_set_bytes":  334888960,
+                        "working_set_mib":  319.375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  3,
+                        "timestamp_utc":  "2026-11-19T21:18:01.5648765Z",
+                        "elapsed_seconds":  6.6022678,
+                        "interval_seconds":  1.0614013,
+                        "included_in_summary":  false,
+                        "cpu_total_seconds":  17.265625,
+                        "cpu_delta_seconds":  3.1875,
+                        "cpu_percent":  18.769408893695534,
+                        "working_set_bytes":  336211968,
+                        "working_set_mib":  320.63671875,
+                        "gpu_timestamp_utc":  "2026-11-19T21:18:01.2190712Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_17884_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  4,
+                        "timestamp_utc":  "2026-11-19T21:18:02.5658092Z",
+                        "elapsed_seconds":  7.6031613,
+                        "interval_seconds":  1.0008935,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  20.921875,
+                        "cpu_delta_seconds":  3.65625,
+                        "cpu_percent":  22.831162855988172,
+                        "working_set_bytes":  336027648,
+                        "working_set_mib":  320.4609375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  5,
+                        "timestamp_utc":  "2026-11-19T21:18:03.6909827Z",
+                        "elapsed_seconds":  8.7276814,
+                        "interval_seconds":  1.1245200999999998,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  24.109375,
+                        "cpu_delta_seconds":  3.1875,
+                        "cpu_percent":  17.715890538550624,
+                        "working_set_bytes":  336990208,
+                        "working_set_mib":  321.37890625,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  6,
+                        "timestamp_utc":  "2026-11-19T21:18:04.6171436Z",
+                        "elapsed_seconds":  9.6543309999999991,
+                        "interval_seconds":  0.9266495999999993,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  26.71875,
+                        "cpu_delta_seconds":  2.609375,
+                        "cpu_percent":  17.599526023644767,
+                        "working_set_bytes":  338587648,
+                        "working_set_mib":  322.90234375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  7,
+                        "timestamp_utc":  "2026-11-19T21:18:05.7587477Z",
+                        "elapsed_seconds":  10.795549099999999,
+                        "interval_seconds":  1.1412180999999997,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  28.734375,
+                        "cpu_delta_seconds":  2.015625,
+                        "cpu_percent":  11.038780623966623,
+                        "working_set_bytes":  344502272,
+                        "working_set_mib":  328.54296875,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  8,
+                        "timestamp_utc":  "2026-11-19T21:18:06.6093260Z",
+                        "elapsed_seconds":  11.646580799999999,
+                        "interval_seconds":  0.85103170000000006,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  29.9375,
+                        "cpu_delta_seconds":  1.203125,
+                        "cpu_percent":  8.83578279163984,
+                        "working_set_bytes":  424407040,
+                        "working_set_mib":  404.74609375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  9,
+                        "timestamp_utc":  "2026-11-19T21:18:07.5974894Z",
+                        "elapsed_seconds":  12.6344896,
+                        "interval_seconds":  0.98790880000000136,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  31.4375,
+                        "cpu_delta_seconds":  1.5,
+                        "cpu_percent":  9.4897423729801655,
+                        "working_set_bytes":  429060096,
+                        "working_set_mib":  409.18359375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  10,
+                        "timestamp_utc":  "2026-11-19T21:18:08.5621268Z",
+                        "elapsed_seconds":  13.5997863,
+                        "interval_seconds":  0.96529669999999967,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  33.078125,
+                        "cpu_delta_seconds":  1.640625,
+                        "cpu_percent":  10.622543566138788,
+                        "working_set_bytes":  422473728,
+                        "working_set_mib":  402.90234375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  11,
+                        "timestamp_utc":  "2026-11-19T21:18:09.5355500Z",
+                        "elapsed_seconds":  14.572529099999999,
+                        "interval_seconds":  0.97274279999999891,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  34.421875,
+                        "cpu_delta_seconds":  1.34375,
+                        "cpu_percent":  8.6337698927198527,
+                        "working_set_bytes":  434790400,
+                        "working_set_mib":  414.6484375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU collector has not returned a fresh counter sample for this tick; no previous value was reused.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  12,
+                        "timestamp_utc":  "2026-11-19T21:18:10.5170859Z",
+                        "elapsed_seconds":  15.554339899999999,
+                        "interval_seconds":  0.98181079999999987,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  35.890625,
+                        "cpu_delta_seconds":  1.46875,
+                        "cpu_percent":  9.34975200924659,
+                        "working_set_bytes":  457539584,
+                        "working_set_mib":  436.34375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  13,
+                        "timestamp_utc":  "2026-11-19T21:18:11.5302266Z",
+                        "elapsed_seconds":  16.567232699999998,
+                        "interval_seconds":  1.0128927999999995,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  37.046875,
+                        "cpu_delta_seconds":  1.15625,
+                        "cpu_percent":  7.1345778151449037,
+                        "working_set_bytes":  457736192,
+                        "working_set_mib":  436.53125,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  14,
+                        "timestamp_utc":  "2026-11-19T21:18:12.5322298Z",
+                        "elapsed_seconds":  17.569666899999998,
+                        "interval_seconds":  1.0024341999999997,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  38.484375,
+                        "cpu_delta_seconds":  1.4375,
+                        "cpu_percent":  8.9625583404875879,
+                        "working_set_bytes":  464580608,
+                        "working_set_mib":  443.05859375,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  15,
+                        "timestamp_utc":  "2026-11-19T21:18:13.5284120Z",
+                        "elapsed_seconds":  18.565258,
+                        "interval_seconds":  0.99559110000000217,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  39.796875,
+                        "cpu_delta_seconds":  1.3125,
+                        "cpu_percent":  8.2394519195681664,
+                        "working_set_bytes":  453390336,
+                        "working_set_mib":  432.38671875,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  16,
+                        "timestamp_utc":  "2026-11-19T21:18:14.5233290Z",
+                        "elapsed_seconds":  19.5608784,
+                        "interval_seconds":  0.9956204,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  40.484375,
+                        "cpu_delta_seconds":  0.6875,
+                        "cpu_percent":  4.3157763742084834,
+                        "working_set_bytes":  449384448,
+                        "working_set_mib":  428.56640625,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  17,
+                        "timestamp_utc":  "2026-11-19T21:18:15.5283297Z",
+                        "elapsed_seconds":  20.5654175,
+                        "interval_seconds":  1.0045390999999988,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  41.90625,
+                        "cpu_delta_seconds":  1.421875,
+                        "cpu_percent":  8.846563314459349,
+                        "working_set_bytes":  452005888,
+                        "working_set_mib":  431.06640625,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  18,
+                        "timestamp_utc":  "2026-11-19T21:18:16.5320624Z",
+                        "elapsed_seconds":  21.5689363,
+                        "interval_seconds":  1.0035188000000019,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  43.09375,
+                        "cpu_delta_seconds":  1.1875,
+                        "cpu_percent":  7.3958504813262946,
+                        "working_set_bytes":  452714496,
+                        "working_set_mib":  431.7421875,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  19,
+                        "timestamp_utc":  "2026-11-19T21:18:17.5380940Z",
+                        "elapsed_seconds":  22.5749995,
+                        "interval_seconds":  1.0060631999999998,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  44.484375,
+                        "cpu_delta_seconds":  1.390625,
+                        "cpu_percent":  8.6390261069085934,
+                        "working_set_bytes":  452665344,
+                        "working_set_mib":  431.6953125,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  20,
+                        "timestamp_utc":  "2026-11-19T21:18:18.5172807Z",
+                        "elapsed_seconds":  23.5547596,
+                        "interval_seconds":  0.9797601,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  45.3125,
+                        "cpu_delta_seconds":  0.828125,
+                        "cpu_percent":  5.2827026228155241,
+                        "working_set_bytes":  459923456,
+                        "working_set_mib":  438.6171875,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  21,
+                        "timestamp_utc":  "2026-11-19T21:18:19.5212992Z",
+                        "elapsed_seconds":  24.5586034,
+                        "interval_seconds":  1.0038437999999985,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  45.921875,
+                        "cpu_delta_seconds":  0.609375,
+                        "cpu_percent":  3.7940103330817063,
+                        "working_set_bytes":  451485696,
+                        "working_set_mib":  430.5703125,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  22,
+                        "timestamp_utc":  "2026-11-19T21:18:20.5260886Z",
+                        "elapsed_seconds":  25.563517899999997,
+                        "interval_seconds":  1.0049144999999982,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  47.796875,
+                        "cpu_delta_seconds":  1.875,
+                        "cpu_percent":  11.661439853838333,
+                        "working_set_bytes":  460443648,
+                        "working_set_mib":  439.11328125,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  23,
+                        "timestamp_utc":  "2026-11-19T21:18:21.5275982Z",
+                        "elapsed_seconds":  26.564930099999998,
+                        "interval_seconds":  1.0014122000000008,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  49.15625,
+                        "cpu_delta_seconds":  1.359375,
+                        "cpu_percent":  8.4841124863467741,
+                        "working_set_bytes":  460865536,
+                        "working_set_mib":  439.515625,
+                        "gpu_timestamp_utc":  null,
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "GPU Engine counter unavailable: The data in one of the performance counter samples is not valid. View the Status property for each PerformanceCounterSample object to make sure it contains valid data. (Counter names may be localized, unsupported, or inaccessible.)",
+                        "sample_error":  null
+                    }
+                ]
+}

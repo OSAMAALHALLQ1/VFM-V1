@@ -1,0 +1,281 @@
+{
+    "schema_version":  1,
+    "started_utc":  "2026-11-19T20:53:09.7592104Z",
+    "finished_utc":  "2026-11-19T20:53:19.7215133Z",
+    "binary":  "D:\\تجاربي\\VLC MAIN QODER\\target\\release\\spike.exe",
+    "media":  "D:\\تجاربي\\VLC MAIN QODER\\media\\h264_1080p60.mp4",
+    "size":  "1920x1080",
+    "requested_measurement_seconds":  5,
+    "observed_process_seconds":  8.519556699999999,
+    "measurement_complete":  true,
+    "process_id":  9024,
+    "exit_code":  0,
+    "nonzero_exit":  false,
+    "process_exited":  true,
+    "timed_out":  false,
+    "success":  true,
+    "errors":  [
+
+               ],
+    "coverage_warnings":  [
+
+                          ],
+    "environment":  {
+                        "LIBVLC_PATH":  "D:\\تجاربي\\VLC MAIN QODER\\third_party\\vlc-3.0.24",
+                        "SLINT_BACKEND":  "winit-femtovg"
+                    },
+    "hardware":  {
+                     "video_controllers":  [
+                                               {
+                                                   "Name":  "LuminonCore IDDCX Adapter",
+                                                   "VideoProcessor":  null,
+                                                   "DriverVersion":  "1.0.2018.1204",
+                                                   "DriverDate":  "\/Date(1543881600000)\/",
+                                                   "AdapterRAM":  null,
+                                                   "PNPDeviceID":  "LCI\\IDDCX\\1\u002679F5D87\u00263\u0026WHO_CARE"
+                                               },
+                                               {
+                                                   "Name":  "NVIDIA GeForce RTX 3050 Ti Laptop GPU",
+                                                   "VideoProcessor":  "NVIDIA GeForce RTX 3050 Ti Laptop GPU",
+                                                   "DriverVersion":  "30.0.15.1165",
+                                                   "DriverDate":  "\/Date(1643328000000)\/",
+                                                   "AdapterRAM":  4293918720,
+                                                   "PNPDeviceID":  "PCI\\VEN_10DE\u0026DEV_25A0\u0026SUBSYS_12EC1462\u0026REV_A1\\4\u002636DBEA65\u00260\u00260008"
+                                               },
+                                               {
+                                                   "Name":  "Intel(R) UHD Graphics",
+                                                   "VideoProcessor":  "Intel(R) UHD Graphics Family",
+                                                   "DriverVersion":  "30.0.101.2079",
+                                                   "DriverDate":  "\/Date(1653523200000)\/",
+                                                   "AdapterRAM":  1073741824,
+                                                   "PNPDeviceID":  "PCI\\VEN_8086\u0026DEV_9A60\u0026SUBSYS_12EC1462\u0026REV_01\\3\u002611583659\u00262\u002610"
+                                               }
+                                           ],
+                     "processors":  [
+                                        {
+                                            "Name":  "11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz",
+                                            "Manufacturer":  "GenuineIntel",
+                                            "NumberOfCores":  8,
+                                            "NumberOfLogicalProcessors":  16,
+                                            "MaxClockSpeed":  2304
+                                        }
+                                    ],
+                     "query_errors":  [
+
+                                      ],
+                     "logical_processor_count":  16
+                 },
+    "os":  {
+               "Caption":  "Microsoft Windows 11 Home",
+               "Version":  "10.0.22631",
+               "BuildNumber":  "22631",
+               "OSArchitecture":  "64-bit",
+               "TotalVisibleMemorySize":  16471568
+           },
+    "sampling_method":  {
+                            "deadline_seconds":  23,
+                            "gpu_timing":  "PDH primed up to 15 seconds before launch; pre-launch values discarded. Each CPU tick consumes latest newly queued GPU snapshot with its own timestamp; no old snapshot is reused. Slow counters never block CPU sampling or the process deadline.",
+                            "warmup":  "Exclude first 3 process samples from every summary; retain them in raw output",
+                            "cpu":  "100 * delta(Process.TotalProcessorTime.TotalSeconds) / delta(elapsed_seconds) / Environment.ProcessorCount",
+                            "deadline_policy":  "3 + Seconds + 15 seconds; kill only the Process object launched by this script; wait up to 5 seconds for termination",
+                            "memory":  "Process.WorkingSet64 snapshot in bytes; MiB = bytes / 1048576 (not private bytes or GPU memory)",
+                            "target_interval_seconds":  1,
+                            "clock":  "System.Diagnostics.Stopwatch (actual elapsed deltas; no interpolation)",
+                            "warmup_samples":  3,
+                            "gpu":  "Get-Counter \\GPU Engine(*)\\Utilization Percentage -Continuous -SampleInterval 1 in a background runspace; pid_PID_* only; preserve each instance; maximum valid engine percentage, NEVER sum engines",
+                            "gpu_unavailable":  "null with explanatory error; missing engines are not treated as zero; summaries use only valid observations"
+                        },
+    "summary":  {
+                    "working_set_bytes":  {
+                                              "count":  5,
+                                              "mean":  419467264,
+                                              "max":  427175936
+                                          },
+                    "gpu_unavailable_samples":  5,
+                    "measured_samples":  5,
+                    "gpu_engines":  [
+
+                                    ],
+                    "measured_interval_seconds":  5.0116088999999988,
+                    "cpu_percent":  {
+                                        "count":  5,
+                                        "mean":  4.7964689915352254,
+                                        "max":  9.533194675378331
+                                    },
+                    "gpu_errors":  [
+                                       "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity."
+                                   ],
+                    "working_set_mib":  {
+                                            "count":  5,
+                                            "mean":  400.03515625,
+                                            "max":  407.38671875
+                                        },
+                    "gpu_max_engine_percent":  {
+                                                   "count":  0,
+                                                   "mean":  null,
+                                                   "max":  null
+                                               }
+                },
+    "artifacts":  {
+                      "samples_csv":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T205254025Z-1920x1080-a9cc03da.csv",
+                      "stderr":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T205254025Z-1920x1080-a9cc03da.stderr.log",
+                      "application_report":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T205254025Z-1920x1080-a9cc03da.spike.json",
+                      "stdout":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T205254025Z-1920x1080-a9cc03da.stdout.log",
+                      "application_report_exists":  true,
+                      "json":  "D:\\تجاربي\\VLC MAIN QODER\\docs\\bench\\spike-20261119T205254025Z-1920x1080-a9cc03da.json"
+                  },
+    "samples":  [
+                    {
+                        "sample":  1,
+                        "timestamp_utc":  "2026-11-19T20:53:11.5812288Z",
+                        "elapsed_seconds":  1.0577683,
+                        "interval_seconds":  1.036749,
+                        "included_in_summary":  false,
+                        "cpu_total_seconds":  0.234375,
+                        "cpu_delta_seconds":  0.234375,
+                        "cpu_percent":  1.4129203404102633,
+                        "working_set_bytes":  314269696,
+                        "working_set_mib":  299.7109375,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:10.7330085Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  2,
+                        "timestamp_utc":  "2026-11-19T20:53:12.5409760Z",
+                        "elapsed_seconds":  2.017301,
+                        "interval_seconds":  0.95953269999999979,
+                        "included_in_summary":  false,
+                        "cpu_total_seconds":  0.78125,
+                        "cpu_delta_seconds":  0.546875,
+                        "cpu_percent":  3.562118049754845,
+                        "working_set_bytes":  330215424,
+                        "working_set_mib":  314.91796875,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:11.7553595Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  3,
+                        "timestamp_utc":  "2026-11-19T20:53:13.5368201Z",
+                        "elapsed_seconds":  3.0135185,
+                        "interval_seconds":  0.9962175000000002,
+                        "included_in_summary":  false,
+                        "cpu_total_seconds":  1.515625,
+                        "cpu_delta_seconds":  0.734375,
+                        "cpu_percent":  4.6072707516179943,
+                        "working_set_bytes":  421220352,
+                        "working_set_mib":  401.70703125,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:12.7637920Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  4,
+                        "timestamp_utc":  "2026-11-19T20:53:14.5509047Z",
+                        "elapsed_seconds":  4.0274044,
+                        "interval_seconds":  1.0138859,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  2.015625,
+                        "cpu_delta_seconds":  0.5,
+                        "cpu_percent":  3.0822008669811858,
+                        "working_set_bytes":  414507008,
+                        "working_set_mib":  395.3046875,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:13.7840625Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  5,
+                        "timestamp_utc":  "2026-11-19T20:53:15.5853241Z",
+                        "elapsed_seconds":  5.0615765999999995,
+                        "interval_seconds":  1.0341721999999995,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  2.921875,
+                        "cpu_delta_seconds":  0.90625,
+                        "cpu_percent":  5.4769046199462741,
+                        "working_set_bytes":  415928320,
+                        "working_set_mib":  396.66015625,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:14.8078950Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  6,
+                        "timestamp_utc":  "2026-11-19T20:53:16.5584603Z",
+                        "elapsed_seconds":  6.0347387,
+                        "interval_seconds":  0.97316210000000058,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  4.40625,
+                        "cpu_delta_seconds":  1.484375,
+                        "cpu_percent":  9.533194675378331,
+                        "working_set_bytes":  416284672,
+                        "working_set_mib":  397,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:15.8273206Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  7,
+                        "timestamp_utc":  "2026-11-19T20:53:17.5442279Z",
+                        "elapsed_seconds":  7.0205443,
+                        "interval_seconds":  0.9858056,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  4.890625,
+                        "cpu_delta_seconds":  0.484375,
+                        "cpu_percent":  3.0709338129140269,
+                        "working_set_bytes":  423440384,
+                        "working_set_mib":  403.82421875,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:16.8975417Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    },
+                    {
+                        "sample":  8,
+                        "timestamp_utc":  "2026-11-19T20:53:18.5479262Z",
+                        "elapsed_seconds":  8.0251273999999988,
+                        "interval_seconds":  1.0045830999999987,
+                        "included_in_summary":  true,
+                        "cpu_total_seconds":  5.34375,
+                        "cpu_delta_seconds":  0.453125,
+                        "cpu_percent":  2.8191109824563081,
+                        "working_set_bytes":  427175936,
+                        "working_set_mib":  407.38671875,
+                        "gpu_timestamp_utc":  "2026-11-19T20:53:17.9211968Z",
+                        "gpu_engines":  [
+
+                                        ],
+                        "gpu_max_engine_percent":  null,
+                        "gpu_error":  "No GPU Engine counter instances matched pid_9024_*. The process may have no exposed GPU engine activity.",
+                        "sample_error":  null
+                    }
+                ]
+}

@@ -1,0 +1,32 @@
+startup: showing renderer before playback initialization
+startup: renderer ready
+startup: installing rendering notifier
+startup: entering UI event loop
+t=1.21 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=2.22 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=3.22 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=4.22 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+t=5.23 callbacks=0 rendered=0 overwritten=0 decoded=0 lost=0
+{
+  "media": "D:\\تجاربي\\VLC MAIN QODER\\media\\h264_1080p60.mp4",
+  "width": 1920,
+  "height": 1080,
+  "chroma": "RV32/BGRX -> RGBA",
+  "decoder": "software (avcodec-hw=none)",
+  "renderer": "winit-femtovg/OpenGL",
+  "warmup_seconds": 3,
+  "measured_seconds": 3.0002718,
+  "callbacks": 0,
+  "ui_supplied": 0,
+  "rendered_unique": 0,
+  "callback_fps": 0.0,
+  "rendered_fps": 0.0,
+  "overwritten_unread": 0,
+  "starved": 0,
+  "supplied_not_rendered": 0,
+  "libvlc_decoded": 0,
+  "libvlc_displayed": 0,
+  "libvlc_lost": 0,
+  "copy_swizzle_ms": null,
+  "render_gap_ms": null
+}
