@@ -23,6 +23,8 @@ pub struct Cli {
     pub runtime: Option<PathBuf>,
     pub size: Option<(u32, u32)>,
     pub start_time: Option<Duration>,
+    /// Per-item cap used by the headless engine harness and smoke tests.
+    pub max_seconds: Option<u64>,
     pub rtl: bool,
     pub fullscreen: bool,
     pub no_video: bool,
@@ -49,6 +51,13 @@ impl Cli {
                     "size" => {
                         let raw = Self::value(args, &mut i, "--size")?;
                         cli.size = Some(Self::parse_size(raw)?);
+                    }
+                    "max-seconds" => {
+                        let raw = Self::value(args, &mut i, "--max-seconds")?;
+                        let secs: u64 = raw
+                            .parse()
+                            .map_err(|_| CliError::InvalidValue("--max-seconds", raw.to_owned()))?;
+                        cli.max_seconds = Some(secs);
                     }
                     "start-time" => {
                         let raw = Self::value(args, &mut i, "--start-time")?;
@@ -123,12 +132,15 @@ mod tests {
             "3840x2160",
             "--start-time",
             "12.5",
+            "--max-seconds",
+            "3",
             "a.mp4",
         ]))
         .unwrap();
         assert_eq!(cli.runtime, Some(PathBuf::from("C:/vlc")));
         assert_eq!(cli.size, Some((3840, 2160)));
         assert_eq!(cli.start_time, Some(Duration::from_millis(12_500)));
+        assert_eq!(cli.max_seconds, Some(3));
     }
 
     #[test]

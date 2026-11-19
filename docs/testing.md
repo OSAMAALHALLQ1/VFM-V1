@@ -1,4 +1,43 @@
-# Phase 0 testing
+# Testing
+
+## Phase 1 — core engine
+
+### Automated
+
+```powershell
+powershell -NoProfile -File scripts/cargo.ps1 fmt --all
+powershell -NoProfile -File scripts/cargo.ps1 clippy --workspace --all-targets -- -D warnings
+powershell -NoProfile -File scripts/cargo.ps1 test --workspace
+powershell -NoProfile -File scripts/cargo.ps1 build --release -p player-app
+```
+
+Latest validation: formatting clean, Clippy clean with `-D warnings`, **52 tests passing** (47 core, 5 wrapper), release build succeeds. Wrapper ABI declarations for every newly used 3.0.x symbol were checked against the official `3.0.x` headers and confirmed exported by the bundled `libvlc.dll`.
+
+Core tests cover: settings defaults/round-trip/clamping/change notifications, SQLite schema and CRUD for media/playlists/queue/progress/bookmarks/presets, queue ordering/shuffle/repeat/reorder, playlist sort/search, player-state transitions, A–B repeat detection, session auto-advance/resume, CLI parsing, file-association descriptor and single-instance hand-off.
+
+### Headless engine harness
+
+```powershell
+$env:LIBVLC_PATH = (Resolve-Path 'third_party/vlc-3.0.24').Path
+.\target\release\engine.exe .\media\h264_1080p60.mp4 .\media\h264_2160p30.mp4 --max-seconds 3
+```
+
+It maps libVLC events into the core state machine on a worker-style loop, prints every state transition, runs several files in sequence, applies A–B seeks and saves progress. Latest run: `Opening → Playing → Ended` for item 1, then the same for item 2, `ENGINE_DONE items=2`, exit 0.
+
+- [x] Multiple files play in order and the queue advances on `EndReached`.
+- [x] Per-media progress, recents and the queue survive in `%APPDATA%/PlayerApp/library.sqlite3`.
+- [x] `resume_position()` restores an incomplete, non-watched position (unit-tested).
+- [x] External subtitle/track/delay/snapshot/chapter calls are exposed in the wrapper and compile against the real DLL.
+- [ ] Real-time clock in the headless harness: the synthetic clips are video-only and the tiny 320×180 frame sink reported `time=0` after 3 s, so the capped-run path saved position 0. A real vout/aout in the UI phase is needed to certify audible sync and visible resume.
+- [ ] SMTC metadata publishing and global media-key hotkeys (deferred; needs an approved `crates/platform` module for the WinRT/Win32 FFI).
+- [ ] Drag & drop into the window and file-association activation end-to-end (UI phase; descriptor + registry writer are implemented and unit-tested).
+- [ ] Real file dialogs, permission errors and network streams (Phase 9/11).
+
+### Known Phase 1 gaps
+
+The app name is still the `<APP_NAME>` placeholder from `brand.rs` and must be confirmed before packaging. `design/tokens.md` and `design/SPEC.md` are still absent; Phase 2 needs them. Phase 0's 4K performance gate remains **FAILED** — no NV12/GPU optimisation spike has been authorised.
+
+## Phase 0 testing
 
 This checklist covers only the architecture spike, not the production screens.
 

@@ -10,6 +10,10 @@ publish.workspace = true
 name = "spike"
 path = "src/bin/spike.rs"
 
+[[bin]]
+name = "engine"
+path = "src/bin/engine.rs"
+
 [dependencies]
 vlc-wrapper.workspace = true
 player-core.workspace = true

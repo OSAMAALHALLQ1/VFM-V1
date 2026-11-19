@@ -6,6 +6,7 @@ pub mod brand;
 pub mod cli;
 pub mod error;
 pub mod model;
+pub mod platform;
 pub mod playlist;
 pub mod queue;
 pub mod session;
