@@ -231,6 +231,23 @@ fn wire_callbacks(ui: &PlayerWindow, mini: &MiniPlayerWindow, tx: Sender<Command
         }
     });
 
+    let ui_weak = ui.as_weak();
+    ui.on_minimize_window(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            ui.window().set_minimized(true);
+        }
+    });
+    let ui_weak = ui.as_weak();
+    ui.on_maximize_window(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let window = ui.window();
+            window.set_maximized(!window.is_maximized());
+        }
+    });
+    ui.on_close_window(move || {
+        let _ = slint::quit_event_loop();
+    });
+
     let t = tx;
     mini.on_toggle_play(move || {
         let _ = t.send(Command::TogglePause);

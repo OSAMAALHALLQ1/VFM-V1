@@ -30,7 +30,12 @@ export component PlayerWindow inherits Window {
     callback next();
     callback previous();
     callback open-file();
+    callback minimize-window();
+    callback maximize-window();
+    callback close-window();
 
+    // Custom title bar: WindowMoveArea keeps Windows drag/snap behaviour.
+    no-frame: true;
     default-font-family: AppTheme.font-family;
     background: AppTheme.bg-b2;
     title: root.media-title;
@@ -82,32 +87,36 @@ export component PlayerWindow inherits Window {
         }
     }
 
-    // ---- Top bar (menu, title, PiP, fullscreen) -------------------------------
+    // ---- Custom title bar (drag/snap via WindowMoveArea) -----------------------
     top := Rectangle {
-        visible: root.ui-visible;
-        x: 0; y: 0; width: parent.width; height: 44px;
+        x: 0; y: 0; width: parent.width; height: 36px;
         background: AppTheme.overlay-bg;
-        FlexboxLayout {
-            flex-direction: AppTheme.rtl ? row-reverse : row;
-            padding-left: AppTheme.space-16; padding-right: AppTheme.space-16;
-            spacing: AppTheme.space-12;
-            IconButton { image: @image-url("../../../assets/icons/mono/more.svg"); tip: Strings.menu-settings; activated => { root.context-menu-visible = true; } }
-            IconButton { image: @image-url("../../../assets/icons/mono/sidebar.svg"); tip: Strings.menu-sidebar; activated => { root.toggle-sidebar(); } }
-            Text {
-                text: root.media-title;
-                color: AppTheme.fg-1; font-size: AppTheme.type-body;
-                horizontal-alignment: AppTheme.rtl ? right : left;
-                overflow: elide; horizontal-stretch: 1;
+        WindowMoveArea {
+            FlexboxLayout {
+                flex-direction: AppTheme.rtl ? row-reverse : row;
+                padding-left: AppTheme.space-12; padding-right: AppTheme.space-4;
+                spacing: AppTheme.space-8;
+                IconButton { image: @image-url("../../../assets/icons/mono/more.svg"); tip: Strings.menu-settings; activated => { root.context-menu-visible = true; } }
+                IconButton { image: @image-url("../../../assets/icons/mono/sidebar.svg"); tip: Strings.menu-sidebar; activated => { root.toggle-sidebar(); } }
+                Text {
+                    text: root.media-title;
+                    color: AppTheme.fg-1; font-size: AppTheme.type-caption;
+                    horizontal-alignment: AppTheme.rtl ? right : left;
+                    overflow: elide; horizontal-stretch: 1;
+                }
+                IconButton { image: @image-url("../../../assets/icons/mono/maximize.svg"); tip: Strings.menu-pip; activated => { root.toggle-pip(); } }
+                IconButton { image: @image-url("../../../assets/icons/mono/fullscreen.svg"); tip: Strings.menu-fullscreen; activated => { root.toggle-fullscreen(); } }
+                IconButton { image: @image-url("../../../assets/icons/mono/minimize.svg"); tip: Strings.window_minimize; activated => { root.minimize-window(); } }
+                IconButton { image: @image-url("../../../assets/icons/mono/maximize.svg"); tip: Strings.window_maximize; activated => { root.maximize-window(); } }
+                IconButton { image: @image-url("../../../assets/icons/mono/close.svg"); tip: Strings.window_close; activated => { root.close-window(); } }
             }
-            IconButton { image: @image-url("../../../assets/icons/mono/maximize.svg"); tip: Strings.menu-pip; activated => { root.toggle-pip(); } }
-            IconButton { image: @image-url("../../../assets/icons/mono/fullscreen.svg"); tip: Strings.menu-fullscreen; activated => { root.toggle-fullscreen(); } }
         }
     }
 
     // ---- Bottom control bar ---------------------------------------------------
     bottom := Rectangle {
         visible: root.ui-visible;
-        x: 0; y: parent.height - 92px; width: parent.width; height: 92px;
+        x: 0; y: parent.height - 68px; width: parent.width; height: 68px;
         background: AppTheme.overlay-bg;
         VerticalLayout {
             padding-left: AppTheme.space-16; padding-right: AppTheme.space-16;
@@ -181,7 +190,7 @@ export component PlayerWindow inherits Window {
     Rectangle {
         visible: root.sidebar-visible;
         x: AppTheme.rtl ? 0 : parent.width - 288px;
-        y: 44px; width: 288px; height: parent.height - 136px;
+        y: 36px; width: 288px; height: parent.height - 104px;
         background: AppTheme.bg-b1; border-radius: AppTheme.radius-lg;
         border-width: 1px; border-color: AppTheme.divider-dim;
         Text { x: AppTheme.space-12; y: AppTheme.space-12; text: Strings.menu-sidebar; color: AppTheme.fg-1; font-size: AppTheme.type-title; font-weight: 600; }

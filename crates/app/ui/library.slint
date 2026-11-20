@@ -1,0 +1,166 @@
+// Phase 4 — full-screen library, queue panel and mini player strip.
+import { AppTheme } from "theme.slint";
+import { Strings } from "i18n.slint";
+import { AppButton, IconButton, SearchField, Tabs, Breadcrumb, AppScrollBar } from "components.slint";
+
+export struct MediaCard {
+    id: int,
+    title: string,
+    subtitle: string,
+    kind: string,
+    watched: bool,
+}
+
+export component LibraryWindow inherits Window {
+    in property <[MediaCard]> items: [];
+    in property <[string]> queue: [];
+    in-out property <string> section: Strings.library_home;
+    in-out property <string> breadcrumb: "Home";
+    in-out property <string> search-text: "";
+    in-out property <string> status: "";
+    in-out property <string> now-playing: "";
+    in-out property <int> view-mode: 0;
+    in-out property <bool> scanning: false;
+    in-out property <bool> playing: false;
+    in-out property <float> progress: 0;
+
+    callback select-section(string);
+    callback open-media(int);
+    callback add-to-queue(int);
+    callback remove-from-queue(int);
+    callback move-queue(int, int);
+    callback clear-queue();
+    callback scan-folder();
+    callback search-changed(string);
+    callback set-sort(int);
+    callback set-view(int);
+    callback play-queue(int);
+    callback toggle-play();
+    callback close-library();
+
+    default-font-family: AppTheme.font-family;
+    background: AppTheme.bg-b1;
+    title: Strings.library_home;
+    preferred-width: 1280px;
+    preferred-height: 760px;
+
+    HorizontalLayout {
+        spacing: AppTheme.space-2;
+
+        // ---- Sidebar -----------------------------------------------------------
+        Rectangle {
+            width: 200px; background: AppTheme.bg-b2;
+            VerticalLayout {
+                padding: AppTheme.space-12; spacing: AppTheme.space-4;
+                Text { text: Strings.library_home; color: AppTheme.fg-1; font-size: AppTheme.type-title; font-weight: 600; }
+                for label in [Strings.library_home, Strings.library_videos, Strings.library_music, Strings.library_network, Strings.library_playlists, Strings.library_recent]: Rectangle {
+                    height: 38px; border-radius: AppTheme.radius-md;
+                    background: area.has-hover ? AppTheme.hover : label == root.section ? AppTheme.bg-accent-dark : transparent;
+                    Text { x: AppTheme.space-10; text: label; color: label == root.section ? AppTheme.accent : AppTheme.fg-1; font-size: AppTheme.type-body; vertical-alignment: center; }
+                    area := TouchArea { clicked => { root.select-section(label); } }
+                }
+                Rectangle { vertical-stretch: 1; }
+                AppButton { label: Strings.library_add; activated => { root.scan-folder(); } }
+            }
+        }
+
+        // ---- Main content ------------------------------------------------------
+        Rectangle {
+            horizontal-stretch: 1;
+            VerticalLayout {
+                spacing: AppTheme.space-8; padding: AppTheme.space-12;
+
+                // Toolbar
+                FlexboxLayout {
+                    flex-direction: AppTheme.rtl ? row-reverse : row;
+                    spacing: AppTheme.space-8; height: 36px;
+                    IconButton { image: @image-url("../../../assets/icons/mono/chevronLeft.svg"); tip: Strings.previous; activated => { root.select-section(Strings.library_recent); } }
+                    IconButton { image: @image-url("../../../assets/icons/mono/chevronRight.svg"); tip: Strings.next; }
+                    Breadcrumb { segments: [Strings.library_videos, Strings.card_title]; width: 280px; }
+                    Rectangle { horizontal-stretch: 1; }
+                    SearchField { placeholder: Strings.search; width: 220px; text: root.search_text; edited => { root.search-changed(self.text); } }
+                    IconButton { image: @image-url("../../../assets/icons/mono/settings.svg"); tip: Strings.library_sort; activated => { root.set-sort(0); } }
+                    IconButton { image: @image-url("../../../assets/icons/mono/playlist.svg"); tip: Strings.library_grid; activated => { root.set-view(0); } }
+                    IconButton { image: @image-url("../../../assets/icons/mono/sidebar.svg"); tip: Strings.library_list; activated => { root.set-view(1); } }
+                }
+
+                Text { text: root.section + " · " + root.status; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
+
+                // Media grid / list
+                Flickable {
+                    vertical-stretch: 1; content-height: max(600px, root.items.length * 60px);
+                    FlexboxLayout {
+                        flex-wrap: wrap;
+                        spacing: AppTheme.space-12;
+                        for item in root.items: Rectangle {
+                            width: 180px;
+                            height: root.view_mode == 0 ? 150px : 58px;
+                            background: hover.has-hover ? AppTheme.hover : AppTheme.bg-a3;
+                            border-radius: AppTheme.radius-lg;
+                            border-width: 1px; border-color: AppTheme.divider-dim;
+                            Rectangle {
+                                x: AppTheme.space-8; y: AppTheme.space-8;
+                                width: root.view_mode == 0 ? 164px : 42px;
+                                height: root.view_mode == 0 ? 90px : 42px;
+                                background: item.watched ? AppTheme.bg-accent-bright : AppTheme.bg-accent-dark;
+                                border-radius: AppTheme.radius-md;
+                                Text { text: item.kind == "Audio" ? "♪" : "▶"; color: AppTheme.accent; font-size: AppTheme.type-title; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text {
+                                x: AppTheme.space-8; y: root.view_mode == 0 ? 104px : 12px;
+                                text: item.title; color: AppTheme.fg-1; font-size: AppTheme.type-body;
+                                overflow: elide; width: parent.width - AppTheme.space-16;
+                            }
+                            Text {
+                                x: AppTheme.space-8; y: root.view_mode == 0 ? 124px : 34px;
+                                text: item.subtitle; color: AppTheme.fg-a2; font-size: AppTheme.type-caption;
+                                overflow: elide; width: parent.width - AppTheme.space-16;
+                            }
+                            IconButton {
+                                x: parent.width - 40px; y: AppTheme.space-8;
+                                image: @image-url("../../../assets/icons/mono/add.svg"); tip: Strings.library_add_queue;
+                                activated => { root.add-to-queue(item.id); }
+                            }
+                            hover := TouchArea { double-clicked => { root.open-media(item.id); } }
+                        }
+                    }
+                }
+
+                // Mini player strip
+                Rectangle {
+                    height: 56px; background: AppTheme.overlay-bg; border-radius: AppTheme.radius-lg;
+                    FlexboxLayout {
+                        flex-direction: AppTheme.rtl ? row-reverse : row;
+                        spacing: AppTheme.space-8; padding: AppTheme.space-8;
+                        IconButton { glyph: root.playing ? "❚❚" : "▶"; activated => { root.toggle-play(); } }
+                        Text { text: root.now-playing; color: AppTheme.fg-1; font-size: AppTheme.type-caption; overflow: elide; horizontal-stretch: 1; }
+                        IconButton { image: @image-url("../../../assets/icons/mono/close.svg"); tip: Strings.window_close; activated => { root.close-library(); } }
+                    }
+                }
+            }
+        }
+
+        // ---- Queue panel -------------------------------------------------------
+        Rectangle {
+            width: 280px; background: AppTheme.bg-b2;
+            VerticalLayout {
+                padding: AppTheme.space-12; spacing: AppTheme.space-6;
+                Text { text: Strings.library_queue; color: AppTheme.fg-1; font-size: AppTheme.type-title; font-weight: 600; }
+                Flickable {
+                    vertical-stretch: 1; content-height: max(400px, root.queue.length * 46px);
+                    VerticalLayout {
+                        spacing: AppTheme.space-4;
+                        for uri[index] in root.queue: Rectangle {
+                            height: 42px; border-radius: AppTheme.radius-sm; background: AppTheme.bg-a3;
+                            Text { x: AppTheme.space-8; y: 4px; text: uri; color: AppTheme.fg-1; font-size: AppTheme.type-caption; overflow: elide; width: parent.width - 110px; }
+                            IconButton { x: parent.width - 104px; y: 4px; image: @image-url("../../../assets/icons/mono/chevronUp.svg"); tip: Strings.previous; activated => { root.move-queue(index, max(0, index - 1)); } }
+                            IconButton { x: parent.width - 72px; y: 4px; image: @image-url("../../../assets/icons/mono/chevronDown.svg"); tip: Strings.next; activated => { root.move-queue(index, min(root.queue.length - 1, index + 1)); } }
+                            IconButton { x: parent.width - 40px; y: 4px; image: @image-url("../../../assets/icons/mono/remove.svg"); tip: Strings.library_remove; activated => { root.remove-from-queue(index); } }
+                        }
+                    }
+                }
+                AppButton { label: Strings.library_clear_queue; activated => { root.clear-queue(); } }
+            }
+        }
+    }
+}

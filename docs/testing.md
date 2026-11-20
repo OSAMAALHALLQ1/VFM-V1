@@ -1,5 +1,37 @@
 # Testing
 
+## Phase 4 — queue & library
+
+### Automated
+
+```powershell
+powershell -NoProfile -File scripts/cargo.ps1 fmt --all
+powershell -NoProfile -File scripts/cargo.ps1 clippy --workspace --all-targets -- -D warnings
+powershell -NoProfile -File scripts/cargo.ps1 test --workspace
+powershell -NoProfile -File scripts/cargo.ps1 build --release -p player-app --bin library
+```
+
+Latest validation: **61 tests passing** (50 core including 3 new scanner tests, 5 wrapper, 6 i18n), Clippy clean, release build succeeds.
+
+### Library smoke
+
+```powershell
+.\target\release\library.exe .\media
+```
+
+- [x] Cancellable incremental folder scanner upserts media by URI and links it to the folder (3 unit tests: recursive, non-recursive, rescan/cancel).
+- [x] Sidebar sections, toolbar (back/forward, breadcrumb, search, sort, grid/list), media grid, queue panel with move/remove/clear, mini-player strip.
+- [x] Add-to-queue, search and sort operate on persisted state; open-media launches `player.exe`.
+- [x] Scans of 10k+ paths use a bounded stack and progress callbacks; the UI list is model-backed (true virtualisation still pending).
+- [x] Live capture in `docs/compare/library-dark-en.png`, inspected visually.
+- [ ] Thumbnail cache, watch/unwatch toggles in the UI, network-stream URL import, playlist CRUD dialogs, true list virtualisation, drag & drop reordering with the mouse (buttons work).
+
+## Phase 3 — player view (completed pass)
+
+- [x] Custom title bar using `no-frame` + `WindowMoveArea`, with working minimise / maximise-restore / close and Windows snap-drag.
+- [x] Volume control is now a clipped cone shape.
+- [x] Keyboard shortcut automation harness `scripts/test-shortcuts.ps1` sends WM_KEYDOWN/UP and captures the result (`docs/compare/shortcut-mute.png`); PostMessage delivery to Slint's FocusScope is not fully reliable, so real-user keyboard QA is still advised.
+
 ## Phase 3 — player view
 
 ### Automated

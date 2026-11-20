@@ -22,6 +22,10 @@ path = "src/bin/gallery.rs"
 name = "player"
 path = "src/bin/player.rs"
 
+[[bin]]
+name = "library"
+path = "src/bin/library.rs"
+
 [dependencies]
 vlc-wrapper.workspace = true
 player-core.workspace = true

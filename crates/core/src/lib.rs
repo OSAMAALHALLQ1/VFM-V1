@@ -9,6 +9,7 @@ pub mod model;
 pub mod platform;
 pub mod playlist;
 pub mod queue;
+pub mod scanner;
 pub mod session;
 pub mod settings;
 pub mod state;

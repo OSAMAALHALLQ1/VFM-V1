@@ -116,6 +116,26 @@ pub fn apply(global: &crate::Strings<'_>, catalog: &Catalog) {
     global.set_osd_muted(catalog.get("osd-muted").into());
     global.set_osd_volume(catalog.get("osd-volume").into());
     global.set_osd_open_later(catalog.get("osd-open-later").into());
+    global.set_window_minimize(catalog.get("window-minimize").into());
+    global.set_window_maximize(catalog.get("window-maximize").into());
+    global.set_window_close(catalog.get("window-close").into());
+    global.set_library_home(catalog.get("library-home").into());
+    global.set_library_videos(catalog.get("library-videos").into());
+    global.set_library_music(catalog.get("library-music").into());
+    global.set_library_network(catalog.get("library-network").into());
+    global.set_library_playlists(catalog.get("library-playlists").into());
+    global.set_library_recent(catalog.get("library-recent").into());
+    global.set_library_add(catalog.get("library-add").into());
+    global.set_library_scan(catalog.get("library-scan").into());
+    global.set_library_watched(catalog.get("library-watched").into());
+    global.set_library_queue(catalog.get("library-queue").into());
+    global.set_library_clear_queue(catalog.get("library-clear-queue").into());
+    global.set_library_grid(catalog.get("library-grid").into());
+    global.set_library_list(catalog.get("library-list").into());
+    global.set_library_sort(catalog.get("library-sort").into());
+    global.set_library_empty(catalog.get("library-empty").into());
+    global.set_library_add_queue(catalog.get("library-add-queue").into());
+    global.set_library_remove(catalog.get("library-remove").into());
 }
 
 #[cfg(test)]

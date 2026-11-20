@@ -147,12 +147,14 @@ export component VolumeCone inherits Rectangle {
     border-width: fs.has-focus ? 2px : 0;
     border-color: AppTheme.focus-ring;
     fs := FocusScope {}
+    Rectangle { width: parent.width; height: parent.height; background: AppTheme.bg-a1; border-radius: AppTheme.radius-pill; }
     Rectangle {
         clip: true;
-        Rectangle { width: parent.width * root.value; height: parent.height; background: AppTheme.accent; }
+        width: parent.width * root.value;
+        height: parent.height;
         Path {
             viewbox-width: 140; viewbox-height: 24;
-            MoveTo { x: 0; y: 4; } LineTo { x: 140; y: 0; } LineTo { x: 140; y: 24; } LineTo { x: 0; y: 20; } Close {}
+            MoveTo { x: 0; y: 9; } LineTo { x: 140; y: 2; } LineTo { x: 140; y: 22; } LineTo { x: 0; y: 15; } Close {}
             fill: AppTheme.accent;
         }
     }
@@ -206,6 +208,7 @@ export component Card inherits Rectangle {
 export component SearchField inherits Rectangle {
     in property <string> placeholder: "Search";
     in-out property <string> text;
+    callback edited(string);
     height: 36px; border-radius: AppTheme.radius-md; background: AppTheme.bg-a1;
     border-width: input.has-focus ? 2px : 1px; border-color: input.has-focus ? AppTheme.focus-ring : AppTheme.divider-dim;
     Text {
@@ -216,7 +219,7 @@ export component SearchField inherits Rectangle {
         x: AppTheme.space-10; y: 0; width: parent.width - AppTheme.space-20; height: parent.height;
         text: root.text;
         color: AppTheme.fg-1; font-size: AppTheme.type-body; vertical-alignment: center;
-        edited => { root.text = self.text; }
+        edited => { root.text = self.text; root.edited(self.text); }
     }
 }
 
