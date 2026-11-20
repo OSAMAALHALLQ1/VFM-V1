@@ -1,6 +1,6 @@
 # Phase 0 — libVLC 3.0.x + Slint, Windows x64
 
-Status: functional Phase 0 proof validated; performance gate **FAILED**, GPU utilization measurement **unresolved**. This is an architecture prototype, not a production player. Phase 1 has not started.
+Status: functional Phase 0 proof validated; performance gate **FAILED**, GPU utilization measurement **unresolved**. This is an architecture prototype, not a production player. Phase 1 core engine is now implemented — see [Phase 1 testing](testing.md#phase-1--core-engine); the 4K navigation gate below still blocks production screens.
 
 ## Scope and inputs
 
