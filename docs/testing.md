@@ -1,5 +1,9 @@
 # Testing
 
+## Application icon
+
+`assets/app-icon.ico` (original artwork supplied by the project owner, 256×256) is embedded into every `.exe` by `crates/app/build.rs` via `winres`, and bound to the Slint window `icon` property for player, mini player, library and gallery. Verified with `ExtractAssociatedIcon` on the three release binaries. The staged SDK's `rc.exe` path is supplied by `scripts/cargo.ps1` / `scripts/build-local.ps1`; no system-wide SDK install is required.
+
 ## Phase 5 — tracks, thumbnails, subtitles
 
 ### Automated

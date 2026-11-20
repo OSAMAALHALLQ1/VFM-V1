@@ -67,6 +67,7 @@ export component PlayerWindow inherits Window {
 
     // Custom title bar: WindowMoveArea keeps Windows drag/snap behaviour.
     no-frame: true;
+    icon: @image-url("../../../assets/app-icon.png");
     default-font-family: AppTheme.font-family;
     background: AppTheme.bg-b2;
     title: root.media-title;
@@ -322,6 +323,7 @@ export component MiniPlayerWindow inherits Window {
     callback toggle-pip();
     callback close-pip();
     default-font-family: AppTheme.font-family;
+    icon: @image-url("../../../assets/app-icon.png");
     background: AppTheme.bg-b1;
     title: Strings.menu-pip;
     preferred-width: 420px;

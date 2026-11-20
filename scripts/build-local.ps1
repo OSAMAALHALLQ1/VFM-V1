@@ -34,6 +34,7 @@ $hostBin = Join-Path $vc.FullName 'bin\Hostx64\x64'
 $env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = Join-Path $hostBin 'link.exe'
 $env:CC = Join-Path $hostBin 'cl.exe'
 $env:AR = Join-Path $hostBin 'lib.exe'
+$env:PATH = (Join-Path $root 'third_party\windows-sdk-headers\c\bin\10.0.26100.0\x64') + ';' + $env:PATH
 $sdkInc = Join-Path $headers 'c\Include\10.0.26100.0'
 $env:INCLUDE = ((Join-Path $vc.FullName 'include'), (Join-Path $sdkInc 'ucrt'), (Join-Path $sdkInc 'shared'), (Join-Path $sdkInc 'um')) -join ';'
 $env:LIB = (Join-Path $sdk 'c\ucrt\x64') + ';' + (Join-Path $sdk 'c\um\x64') + ';' + (Join-Path $vc.FullName 'lib\x64') + ';' + $env:LIB
