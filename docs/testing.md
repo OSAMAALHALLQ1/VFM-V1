@@ -1,5 +1,38 @@
 # Testing
 
+## Phase 2 — design system (foundation)
+
+### Inputs extracted from the Figma source
+
+The supplied `VLC Redesign (Community).fig` was decoded with `openfig-cli`; see [`design/tokens.md`](../design/tokens.md) for the method and exact values. Outputs: `design/tokens.json`, `design/tokens.md`, `design/strings.json`. `design/tokens.md` is now the missing source of truth referenced by `CLAUDE.md`.
+
+### Automated
+
+```powershell
+powershell -NoProfile -File scripts/cargo.ps1 fmt --all
+powershell -NoProfile -File scripts/cargo.ps1 clippy --workspace --all-targets -- -D warnings
+powershell -NoProfile -File scripts/cargo.ps1 test --workspace
+powershell -NoProfile -File scripts/cargo.ps1 build --release -p player-app --bin gallery
+```
+
+Latest validation: formatting/Clippy clean, **54 tests passing** (49 core including 2 new i18n tests, 5 wrapper), release build succeeds.
+
+### Gallery smoke test
+
+```powershell
+$env:LIBVLC_PATH = (Resolve-Path 'third_party/vlc-3.0.24').Path
+.\target\release\gallery.exe                       # dark / English / orange
+.\target\release\gallery.exe --light --lang ar     # light / RTL
+.\target\release\gallery.exe --accent '#8A38F5'    # runtime accent override
+```
+
+- [x] Window opens with no stderr in dark, light, Arabic RTL and custom-accent configurations (launch smoke, 4 s, process alive).
+- [x] Theme tokens come only from `design/tokens.json`; no literal colours in gallery/components.
+- [x] Locale switch rewrites every `Strings` global property and sets RTL mirroring via `FlexboxLayout.flex-direction`.
+- [ ] Pixel comparison against Figma in `docs/compare/` — gallery is a review harness, not a Figma screen copy yet.
+- [ ] Bundled Inter + Noto Sans Arabic fonts (currently system fonts: Segoe UI/Inter if installed).
+- [ ] SVG icon sets, remaining component states (focus/disabled for every component), tooltips and scrollbar/breadcrumb components.
+
 ## Phase 1 — core engine
 
 ### Automated

@@ -1,0 +1,99 @@
+// Hidden component gallery used to review every component against Figma.
+import { AppTheme } from "theme.slint";
+import { Strings } from "i18n.slint";
+import {
+    AppButton, IconButton, Toggle, NumericSlider, SeekBar, VolumeCone,
+    Tabs, ListRow, Card, SearchField, Toast, ContextMenu, Dialog,
+} from "components.slint";
+
+export component GalleryWindow inherits Window {
+    title: Strings.gallery-title;
+    preferred-width: 1120px;
+    preferred-height: 780px;
+    min-width: 760px;
+    min-height: 560px;
+    background: AppTheme.bg-b1;
+    default-font-family: "Inter";
+
+    callback set-locale(string);
+
+    VerticalLayout {
+        padding: AppTheme.space-20;
+        spacing: AppTheme.space-16;
+        FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
+            spacing: AppTheme.space-12;
+
+            Text { text: Strings.gallery-title; color: AppTheme.fg-1; font-size: AppTheme.type-display; font-weight: 600; vertical-alignment: center; }
+            Rectangle { horizontal-stretch: 1; }
+            AppButton { label: Strings.dark; activated => { AppTheme.mode = "dark"; } }
+            AppButton { label: Strings.light; activated => { AppTheme.mode = "light"; } }
+            AppButton { label: Strings.english; activated => { root.set-locale("en"); } }
+            AppButton { label: Strings.arabic; activated => { root.set-locale("ar"); } }
+        }
+
+        FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
+            spacing: AppTheme.space-8;
+
+            Text { text: Strings.accent-label; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; vertical-alignment: center; }
+            Rectangle { width: 24px; height: 24px; background: #D37918; border-radius: AppTheme.radius-pill; TouchArea { clicked => { AppTheme.accent = #D37918; } } }
+            Rectangle { width: 24px; height: 24px; background: #8A38F5; border-radius: AppTheme.radius-pill; TouchArea { clicked => { AppTheme.accent = #8A38F5; } } }
+            Rectangle { width: 24px; height: 24px; background: #19A234; border-radius: AppTheme.radius-pill; TouchArea { clicked => { AppTheme.accent = #19A234; } } }
+            Rectangle { width: 24px; height: 24px; background: #185DD3; border-radius: AppTheme.radius-pill; TouchArea { clicked => { AppTheme.accent = #185DD3; } } }
+            Rectangle { horizontal-stretch: 1; }
+        }
+
+        Flickable {
+            content-height: 620px;
+            VerticalLayout {
+                spacing: AppTheme.space-16;
+
+                Text { text: Strings.section-buttons; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }
+                FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
+                    spacing: AppTheme.space-12;
+        
+                    AppButton { label: Strings.primary; primary: true; }
+                    AppButton { label: Strings.secondary; }
+                    AppButton { label: Strings.disabled; disabled: true; }
+                    IconButton { glyph: "▶"; tip: Strings.menu-play; }
+                    IconButton { glyph: "⋮"; tip: Strings.context-menu; active: true; }
+                    Toggle { label: Strings.toggle; checked: true; }
+                }
+
+                Text { text: Strings.section-sliders; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }
+                FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
+                    spacing: AppTheme.space-24;
+        
+                    NumericSlider { label: Strings.volume; value: 65; maximum: 200; }
+                    VolumeCone { value: 0.75; }
+                    SeekBar { progress: 0.42; elapsed: "00:12:35"; total: "00:30:00"; }
+                }
+
+                Text { text: Strings.section-inputs; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }
+                FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
+                    spacing: AppTheme.space-16;
+        
+                    SearchField { placeholder: Strings.search; width: 300px; }
+                    Tabs { labels: [Strings.tabs, Strings.section-collections, Strings.section-overlays]; current: 0; width: 360px; }
+                }
+
+                Text { text: Strings.section-collections; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }
+                FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
+                    spacing: AppTheme.space-12;
+        
+                    Card { title: Strings.card-title; caption: Strings.card-caption; }
+                    ListRow { title: Strings.row-title; subtitle: Strings.row-subtitle; glyph: "▶"; selected: true; width: 360px; }
+                    ListRow { title: Strings.row-title; subtitle: Strings.row-subtitle; glyph: "♪"; width: 360px; }
+                }
+
+                Text { text: Strings.section-overlays; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }
+                FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
+                    spacing: AppTheme.space-16;
+        
+                    ContextMenu { items: [Strings.menu-play, Strings.menu-queue, Strings.menu-hide]; }
+                    Toast { message: Strings.toast; visible-osd: true; width: 320px; }
+                    Rectangle { horizontal-stretch: 1; }
+                }
+            }
+        }
+    }
+}

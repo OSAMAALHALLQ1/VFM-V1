@@ -1,3 +1,3 @@
 fn main() {
-    slint_build::compile("ui/spike.slint").expect("compile Phase 0 UI");
+    slint_build::compile("ui/root.slint").expect("compile Slint UI root");
 }

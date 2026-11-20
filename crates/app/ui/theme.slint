@@ -1,0 +1,101 @@
+// Generated from design/tokens.json (extracted from the Figma file).
+// Styling rule: screens must only reference AppTheme, never literal colours.
+
+export global AppTheme {
+    // Runtime switches
+    in-out property <string> mode: "dark";       // "dark" | "light"
+    in-out property <string> locale: "en";       // "en" | "ar"
+    in-out property <bool> rtl: false;
+    in-out property <color> accent: #D37918;     // runtime-changeable
+
+    // Dark palette (verbatim Figma swatches)
+    in-out property <color> d-accent-bright: #FC9729;
+    in-out property <color> d-accent-dim: #AB6314;
+    in-out property <color> d-bg-a1: #222222;
+    in-out property <color> d-bg-a2: #1F1F1F;
+    in-out property <color> d-bg-a3: #1B1B1B;
+    in-out property <color> d-bg-a4: #191919;
+    in-out property <color> d-bg-a5: #151515;
+    in-out property <color> d-bg-accent-bright: #371F06;
+    in-out property <color> d-bg-accent-dark: #1A1611;
+    in-out property <color> d-bg-b1: #0E0E0E;
+    in-out property <color> d-bg-b2: #090909;
+    in-out property <color> d-fg-1: #EAEAEA;
+    in-out property <color> d-fg-2: #C6C6C6;
+    in-out property <color> d-fg-a1: #969696;
+    in-out property <color> d-fg-a2: #8F8F8F;
+    in-out property <color> d-fg-a3: #6B6B6B;
+    in-out property <color> d-fg-a4: #404040;
+    in-out property <color> d-divider-bright: #373737;
+    in-out property <color> d-divider-dim: #222222;
+
+    // Light palette (verbatim Figma swatches)
+    in-out property <color> l-accent-bright: #FFA13B;
+    in-out property <color> l-accent-dim: #965916;
+    in-out property <color> l-bg-a1: #EDEDED;
+    in-out property <color> l-bg-a2: #DDDDDD;
+    in-out property <color> l-bg-a3: #D5D5D5;
+    in-out property <color> l-bg-a4: #B3B3B3;
+    in-out property <color> l-bg-a5: #888888;
+    in-out property <color> l-bg-accent-bright: #D8BA9A;
+    in-out property <color> l-bg-accent-dark: #C6AB89;
+    in-out property <color> l-bg-b1: #E7E7E7;
+    in-out property <color> l-bg-b2: #DEDEDE;
+    in-out property <color> l-fg-1: #3C3C3C;
+    in-out property <color> l-fg-2: #2E2E2E;
+    in-out property <color> l-fg-a1: #4A4A4A;
+    in-out property <color> l-fg-a2: #5C5C5C;
+    in-out property <color> l-fg-a3: #6B6B6B;
+    in-out property <color> l-fg-a4: #8A8A8A;
+    in-out property <color> l-divider-bright: #9B9B9B;
+    in-out property <color> l-divider-dim: #ACACAC;
+
+    // Resolved palette — what components bind to
+    out property <color> accent-bright: root.mode == "light" ? root.l-accent-bright : root.d-accent-bright;
+    out property <color> accent-dim: root.mode == "light" ? root.l-accent-dim : root.d-accent-dim;
+    out property <color> bg-a1: root.mode == "light" ? root.l-bg-a1 : root.d-bg-a1;
+    out property <color> bg-a2: root.mode == "light" ? root.l-bg-a2 : root.d-bg-a2;
+    out property <color> bg-a3: root.mode == "light" ? root.l-bg-a3 : root.d-bg-a3;
+    out property <color> bg-a4: root.mode == "light" ? root.l-bg-a4 : root.d-bg-a4;
+    out property <color> bg-a5: root.mode == "light" ? root.l-bg-a5 : root.d-bg-a5;
+    out property <color> bg-accent-bright: root.mode == "light" ? root.l-bg-accent-bright : root.d-bg-accent-bright;
+    out property <color> bg-accent-dark: root.mode == "light" ? root.l-bg-accent-dark : root.d-bg-accent-dark;
+    out property <color> bg-b1: root.mode == "light" ? root.l-bg-b1 : root.d-bg-b1;
+    out property <color> bg-b2: root.mode == "light" ? root.l-bg-b2 : root.d-bg-b2;
+    out property <color> fg-1: root.mode == "light" ? root.l-fg-1 : root.d-fg-1;
+    out property <color> fg-2: root.mode == "light" ? root.l-fg-2 : root.d-fg-2;
+    out property <color> fg-a1: root.mode == "light" ? root.l-fg-a1 : root.d-fg-a1;
+    out property <color> fg-a2: root.mode == "light" ? root.l-fg-a2 : root.d-fg-a2;
+    out property <color> fg-a3: root.mode == "light" ? root.l-fg-a3 : root.d-fg-a3;
+    out property <color> fg-a4: root.mode == "light" ? root.l-fg-a4 : root.d-fg-a4;
+    out property <color> divider-bright: root.mode == "light" ? root.l-divider-bright : root.d-divider-bright;
+    out property <color> divider-dim: root.mode == "light" ? root.l-divider-dim : root.d-divider-dim;
+
+    // Interaction states (derived from tokens)
+    out property <color> hover: root.bg-a1;
+    out property <color> pressed: root.accent-dim;
+    out property <color> focus-ring: root.accent-bright;
+    out property <color> on-accent: #101010;
+
+    // Spacing / radii / type scale (px in Figma)
+    out property <length> space-2: 2px;
+    out property <length> space-4: 4px;
+    out property <length> space-6: 6px;
+    out property <length> space-8: 8px;
+    out property <length> space-10: 10px;
+    out property <length> space-12: 12px;
+    out property <length> space-14: 14px;
+    out property <length> space-16: 16px;
+    out property <length> space-20: 20px;
+    out property <length> space-24: 24px;
+    out property <length> space-32: 32px;
+    out property <length> radius-sm: 4px;
+    out property <length> radius-md: 6px;
+    out property <length> radius-lg: 12px;
+    out property <length> radius-xl: 19px;
+    out property <length> radius-pill: 100px;
+    out property <length> type-caption: 12px;
+    out property <length> type-body: 14px;
+    out property <length> type-title: 16px;
+    out property <length> type-display: 24px;
+}

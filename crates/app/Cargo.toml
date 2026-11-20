@@ -14,6 +14,10 @@ path = "src/bin/spike.rs"
 name = "engine"
 path = "src/bin/engine.rs"
 
+[[bin]]
+name = "gallery"
+path = "src/bin/gallery.rs"
+
 [dependencies]
 vlc-wrapper.workspace = true
 player-core.workspace = true

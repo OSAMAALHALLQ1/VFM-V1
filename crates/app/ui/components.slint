@@ -1,0 +1,230 @@
+// Reusable design-system components. Every colour/size comes from AppTheme.
+import { AppTheme } from "theme.slint";
+
+export component AppButton inherits Rectangle {
+    in property <string> label;
+    in property <bool> primary: false;
+    in property <bool> disabled: false;
+    in property <bool> selected: false;
+    callback activated();
+    height: 36px;
+    min-width: 88px;
+    border-radius: AppTheme.radius-md;
+    background: root.disabled ? AppTheme.bg-a2
+        : touch.pressed ? AppTheme.pressed
+        : touch.has-hover ? AppTheme.hover
+        : root.primary || root.selected ? AppTheme.accent : AppTheme.bg-a3;
+    border-width: focus.has-focus ? 2px : 0;
+    border-color: AppTheme.focus-ring;
+    opacity: root.disabled ? 0.5 : 1;
+    Text {
+        text: root.label;
+        color: root.primary || root.selected ? AppTheme.on-accent : AppTheme.fg-1;
+        font-size: AppTheme.type-body;
+        font-weight: 500;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    focus := FocusScope {
+        enabled: !root.disabled;
+        key-pressed(key-event) => {
+            if key-event.text == " " || key-event.text == "\n" { root.activated(); accept; } else { reject; }
+        }
+    }
+    touch := TouchArea {
+        enabled: !root.disabled;
+        clicked => { root.activated(); }
+    }
+}
+
+export component IconButton inherits Rectangle {
+    in property <string> glyph;
+    in property <string> tip: "";
+    in property <bool> active: false;
+    in property <bool> disabled: false;
+    callback activated();
+    width: 40px;
+    height: 40px;
+    border-radius: AppTheme.radius-md;
+    background: touch.pressed ? AppTheme.pressed : touch.has-hover ? AppTheme.hover
+        : root.active ? AppTheme.bg-accent-bright : transparent;
+    opacity: root.disabled ? 0.4 : 1;
+    Text { text: root.glyph; color: root.active ? AppTheme.accent : AppTheme.fg-a2; font-size: AppTheme.type-title; horizontal-alignment: center; vertical-alignment: center; }
+    touch := TouchArea { enabled: !root.disabled; clicked => { root.activated(); }
+        Text { text: root.tip; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; visible: parent.has-hover && root.tip != ""; y: parent.height + AppTheme.space-4; }
+    }
+}
+
+export component Toggle inherits Rectangle {
+    in-out property <bool> checked: false;
+    in property <string> label: "";
+    callback toggled(bool);
+    width: 220px;
+    height: 32px;
+    track := Rectangle {
+        x: 0; y: 0; width: 40px; height: 22px; border-radius: AppTheme.radius-pill;
+        background: root.checked ? AppTheme.accent : AppTheme.bg-a1;
+        knob := Rectangle {
+            x: root.checked ? 20px : 2px; y: 2px; width: 18px; height: 18px;
+            border-radius: AppTheme.radius-pill; background: AppTheme.fg-1;
+            animate x { duration: 120ms; }
+        }
+    }
+    Text { x: 48px; text: root.label; color: AppTheme.fg-1; font-size: AppTheme.type-body; vertical-alignment: center; }
+    TouchArea { clicked => { root.checked = !root.checked; root.toggled(root.checked); } }
+}
+
+export component NumericSlider inherits Rectangle {
+    in-out property <float> value: 0;
+    in property <float> minimum: 0;
+    in property <float> maximum: 100;
+    in property <string> label: "";
+    height: 48px;
+    Text { text: root.label; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; y: 0; }
+    Text { text: Math.round(root.value); color: AppTheme.fg-1; font-size: AppTheme.type-caption; x: parent.width - 40px; y: 0; }
+    Rectangle {
+        y: 26px; height: 6px; border-radius: AppTheme.radius-pill; background: AppTheme.bg-a1;
+        Rectangle { width: (root.value - root.minimum) / (root.maximum - root.minimum) * parent.width; background: AppTheme.accent; border-radius: AppTheme.radius-pill; }
+        TouchArea {
+            clicked => { root.value = root.minimum + (self.mouse-x / self.width) * (root.maximum - root.minimum); }
+            moved => { if self.pressed { root.value = root.minimum + (self.mouse-x / self.width) * (root.maximum - root.minimum); } }
+        }
+    }
+}
+
+export component SeekBar inherits Rectangle {
+    in-out property <float> progress: 0;
+    in property <string> elapsed: "00:00:00";
+    in property <string> total: "00:00:00";
+    callback seek(float);
+    height: 34px;
+    track := Rectangle {
+        y: 8px; height: 10px; border-radius: AppTheme.radius-pill; background: AppTheme.bg-a1;
+        fill := Rectangle { width: root.progress * parent.width; background: AppTheme.accent; border-radius: AppTheme.radius-pill; }
+        knob := Rectangle { x: root.progress * parent.width - 6px; y: -1px; width: 12px; height: 12px; border-radius: AppTheme.radius-pill; background: AppTheme.accent-bright; }
+        tip := Rectangle {
+            visible: area.has-hover;
+            x: clamp(area.mouse-x - 48px, 0px, parent.width - 96px); y: -30px; width: 96px; height: 24px;
+            background: AppTheme.bg-b1; border-radius: AppTheme.radius-sm; border-width: 1px; border-color: AppTheme.divider-bright;
+            Text { text: root.elapsed; color: AppTheme.fg-1; font-size: AppTheme.type-caption; horizontal-alignment: center; vertical-alignment: center; }
+        }
+    }
+    area := TouchArea {
+        clicked => { root.seek(self.mouse-x / self.width); }
+        moved => { if self.pressed { root.seek(self.mouse-x / self.width); } }
+    }
+}
+
+export component VolumeCone inherits Rectangle {
+    in-out property <float> value: 0.75;
+    width: 140px; height: 24px;
+    Rectangle {
+        clip: true;
+        Rectangle { width: parent.width * root.value; height: parent.height; background: AppTheme.accent; }
+        Path {
+            viewbox-width: 140; viewbox-height: 24;
+            MoveTo { x: 0; y: 4; } LineTo { x: 140; y: 0; } LineTo { x: 140; y: 24; } LineTo { x: 0; y: 20; } Close {}
+            fill: AppTheme.accent;
+        }
+    }
+    TouchArea { clicked => { root.value = clamp(self.mouse-x / self.width, 0, 1); } moved => { if self.pressed { root.value = clamp(self.mouse-x / self.width, 0, 1); } } }
+}
+
+export component Tabs inherits Rectangle {
+    in property <[string]> labels: [];
+    in-out property <int> current: 0;
+    height: 40px;
+    HorizontalLayout {
+        spacing: AppTheme.space-4;
+        for label[index] in root.labels: Rectangle {
+            background: index == root.current ? AppTheme.bg-accent-bright : transparent;
+            border-radius: AppTheme.radius-md;
+            Text { text: label; color: index == root.current ? AppTheme.accent : AppTheme.fg-a1; font-size: AppTheme.type-body; horizontal-alignment: center; vertical-alignment: center; }
+            TouchArea { clicked => { root.current = index; } }
+        }
+    }
+}
+
+export component ListRow inherits Rectangle {
+    in property <string> title;
+    in property <string> subtitle: "";
+    in property <string> glyph: "";
+    in property <bool> selected: false;
+    callback activated();
+    height: 56px;
+    border-radius: AppTheme.radius-sm;
+    background: touch.pressed ? AppTheme.pressed : touch.has-hover ? AppTheme.hover : root.selected ? AppTheme.bg-a2 : transparent;
+    Text { x: AppTheme.space-12; text: root.glyph; color: AppTheme.accent; font-size: AppTheme.type-title; vertical-alignment: center; width: 32px; }
+    Text { x: 48px; y: 8px; text: root.title; color: AppTheme.fg-1; font-size: AppTheme.type-body; }
+    Text { x: 48px; y: 30px; text: root.subtitle; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
+    touch := TouchArea { clicked => { root.activated(); } }
+}
+
+export component Card inherits Rectangle {
+    in property <string> title;
+    in property <string> caption: "";
+    height: 120px; width: 180px;
+    background: AppTheme.bg-a3; border-radius: AppTheme.radius-lg;
+    border-width: 1px; border-color: AppTheme.divider-dim;
+    Rectangle { y: 0; height: 78px; background: AppTheme.bg-accent-dark; border-top-left-radius: AppTheme.radius-lg; border-top-right-radius: AppTheme.radius-lg; }
+    Text { x: AppTheme.space-10; y: 84px; text: root.title; color: AppTheme.fg-1; font-size: AppTheme.type-body; }
+    Text { x: AppTheme.space-10; y: 102px; text: root.caption; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
+}
+
+export component SearchField inherits Rectangle {
+    in property <string> placeholder: "Search";
+    in-out property <string> text;
+    height: 36px; border-radius: AppTheme.radius-md; background: AppTheme.bg-a1;
+    border-width: input.has-focus ? 2px : 1px; border-color: input.has-focus ? AppTheme.focus-ring : AppTheme.divider-dim;
+    Text {
+        x: AppTheme.space-10; text: root.text == "" ? root.placeholder : "";
+        color: AppTheme.fg-a3; font-size: AppTheme.type-body; vertical-alignment: center;
+    }
+    input := TextInput {
+        x: AppTheme.space-10; y: 0; width: parent.width - AppTheme.space-20; height: parent.height;
+        text: root.text;
+        color: AppTheme.fg-1; font-size: AppTheme.type-body; vertical-alignment: center;
+        edited => { root.text = self.text; }
+    }
+}
+
+export component Toast inherits Rectangle {
+    in property <string> message;
+    in property <bool> visible-osd: false;
+    height: 40px; border-radius: AppTheme.radius-md; background: AppTheme.bg-b1;
+    border-width: 1px; border-color: AppTheme.divider-bright;
+    opacity: root.visible-osd ? 1 : 0;
+    Text { text: root.message; color: AppTheme.fg-1; font-size: AppTheme.type-body; horizontal-alignment: center; vertical-alignment: center; }
+}
+
+export component ContextMenu inherits Rectangle {
+    in property <[string]> items: [];
+    callback selected(int);
+    width: 180px; height: root.items.length * 34px + AppTheme.space-8;
+    background: AppTheme.bg-b1; border-radius: AppTheme.radius-lg; border-width: 1px; border-color: AppTheme.divider-bright;
+    VerticalLayout {
+        padding: AppTheme.space-4; spacing: AppTheme.space-2;
+        for item[index] in root.items: Rectangle {
+            height: 30px; border-radius: AppTheme.radius-sm;
+            background: area.has-hover ? AppTheme.hover : transparent;
+            Text { text: item; color: AppTheme.fg-1; font-size: AppTheme.type-body; vertical-alignment: center; x: AppTheme.space-8; }
+            area := TouchArea { clicked => { root.selected(index); } }
+        }
+    }
+}
+
+export component Dialog inherits Rectangle {
+    in property <string> title;
+    in property <string> body;
+    callback accept();
+    callback reject();
+    Rectangle { background: #00000099; }
+    Rectangle {
+        width: 380px; height: 190px; x: (parent.width - self.width) / 2; y: (parent.height - self.height) / 2;
+        background: AppTheme.bg-b1; border-radius: AppTheme.radius-xl; border-width: 1px; border-color: AppTheme.divider-bright;
+        Text { x: AppTheme.space-20; y: AppTheme.space-20; text: root.title; color: AppTheme.fg-1; font-size: AppTheme.type-title; font-weight: 600; }
+        Text { x: AppTheme.space-20; y: 60px; width: 340px; text: root.body; color: AppTheme.fg-a1; font-size: AppTheme.type-body; wrap: word-wrap; }
+        AppButton { x: AppTheme.space-20; y: 132px; label: "OK"; primary: true; activated => { root.accept(); } }
+        AppButton { x: 188px; y: 132px; label: "Cancel"; activated => { root.reject(); } }
+    }
+}
