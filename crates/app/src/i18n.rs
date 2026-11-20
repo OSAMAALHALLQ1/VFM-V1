@@ -119,6 +119,10 @@ pub fn apply(global: &crate::Strings<'_>, catalog: &Catalog) {
     global.set_window_minimize(catalog.get("window-minimize").into());
     global.set_window_maximize(catalog.get("window-maximize").into());
     global.set_window_close(catalog.get("window-close").into());
+    global.set_osd_subtitle_delay(catalog.get("osd-subtitle-delay").into());
+    global.set_osd_subtitle_size(catalog.get("osd-subtitle-size").into());
+    global.set_osd_subtitle_position(catalog.get("osd-subtitle-position").into());
+    global.set_osd_subtitle_loaded(catalog.get("osd-subtitle-loaded").into());
     global.set_library_home(catalog.get("library-home").into());
     global.set_library_videos(catalog.get("library-videos").into());
     global.set_library_music(catalog.get("library-music").into());

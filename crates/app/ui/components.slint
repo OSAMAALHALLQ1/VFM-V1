@@ -118,6 +118,7 @@ export component SeekBar inherits Rectangle {
     in property <string> elapsed: "00:00:00";
     in property <string> total: "00:00:00";
     callback seek(float);
+    callback hover(float);
     height: 34px;
     border-radius: AppTheme.radius-sm;
     border-width: fs.has-focus ? 2px : 0;
@@ -136,7 +137,10 @@ export component SeekBar inherits Rectangle {
     }
     area := TouchArea {
         clicked => { root.seek(self.mouse-x / self.width); }
-        moved => { if self.pressed { root.seek(self.mouse-x / self.width); } }
+        moved => {
+            if self.pressed { root.seek(self.mouse-x / self.width); }
+            else { root.hover(clamp(self.mouse-x / self.width, 0, 1)); }
+        }
     }
 }
 

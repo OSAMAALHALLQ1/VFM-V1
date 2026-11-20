@@ -1,5 +1,34 @@
 # Testing
 
+## Phase 5 — tracks, thumbnails, subtitles
+
+### Automated
+
+```powershell
+powershell -NoProfile -File scripts/cargo.ps1 fmt --all
+powershell -NoProfile -File scripts/cargo.ps1 clippy --workspace --all-targets -- -D warnings
+powershell -NoProfile -File scripts/cargo.ps1 test --workspace
+powershell -NoProfile -File scripts/cargo.ps1 build --release -p player-app --bin player
+```
+
+Latest validation: **69 tests passing** (58 core including 5 subtitle parser tests and 3 thumbnail-cache tests, 5 wrapper, 6 i18n), Clippy clean, release build succeeds.
+
+### Subtitle smoke
+
+```powershell
+.\target\release\player.exe .\media\h264_1080p60.mp4 --sub-file docs\demo\sample.srt
+```
+
+- [x] SRT, WebVTT and basic ASS/SSA parse into a cue list with timing and style data (unit-tested); UTF-8/UTF-16 BOM and byte fallback decoding.
+- [x] Own Slint subtitle renderer draws active cues with font size, colour, stroke/outline and vertical position; delay is applied at cue-selection time.
+- [x] Live controls without restart: `[`/`]` delay ±100 ms, `-`/`=` size, `v` cycles position, `u` loads `PLAYER_SUBTITLE`.
+- [x] Audio/subtitle track popovers from the control bar; video tracks remain in the sidebar/context menu.
+- [x] Seek thumbnails use a separate headless libVLC player, an LRU cache and latest-wins cancellation; the main player is untouched.
+- [x] Unsupported/bitmap formats fall back to libVLC slave rendering.
+- [x] Live capture `docs/compare/player-subtitles.png` inspected visually.
+- [ ] Real mouse-hover thumbnail capture in an automated test (no synthetic pointer injection yet).
+- [ ] Full ASS/SSA style override mapping and subtitle-file drag & drop (Slint has no public file-drop hook).
+
 ## Phase 4 — queue & library
 
 ### Automated

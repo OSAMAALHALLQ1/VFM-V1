@@ -12,6 +12,7 @@ Source Figma file: `VLC Redesign (Community).fig` (exported 2026-11-20). Token e
 | [player-light-ar.png](player-light-ar.png) | Player, light, Arabic RTL | `$env:PLAYER_LOCALE='ar'; $env:PLAYER_LIGHT='1';` then the capture command above with `-Name player-light-ar` |
 | [shortcut-mute.png](shortcut-mute.png) | After sending the M shortcut | `powershell -NoProfile -File scripts/test-shortcuts.ps1 -Key M -VirtualKey 77 -Name shortcut-mute` |
 | [library-dark-en.png](library-dark-en.png) | Library + queue panel after scanning `.\media` | `powershell -NoProfile -File scripts/capture-library.ps1 -Name library-dark-en -GalleryArgs '.\media'` |
+| [player-subtitles.png](player-subtitles.png) | Own subtitle renderer over live video | `powershell -NoProfile -File scripts/capture-player.ps1 -Name player-subtitles -GalleryArgs '.\media\h264_1080p60.mp4 --sub-file docs\demo\sample.srt'` |
 
 Both captures are 1418×1022 physical pixels at this desktop's current scale and were inspected visually. They show that the palette, type scale, radii, states, RTL mirroring and bundled fonts render; the gallery is a component review harness, not a pixel copy of a Figma screen.
 

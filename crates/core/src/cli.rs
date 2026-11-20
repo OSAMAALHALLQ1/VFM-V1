@@ -23,6 +23,8 @@ pub struct Cli {
     pub runtime: Option<PathBuf>,
     pub size: Option<(u32, u32)>,
     pub start_time: Option<Duration>,
+    /// External subtitle files to load (SRT/WebVTT/ASS/SSA).
+    pub subtitle_files: Vec<String>,
     /// Per-item cap used by the headless engine harness and smoke tests.
     pub max_seconds: Option<u64>,
     pub rtl: bool,
@@ -51,6 +53,10 @@ impl Cli {
                     "size" => {
                         let raw = Self::value(args, &mut i, "--size")?;
                         cli.size = Some(Self::parse_size(raw)?);
+                    }
+                    "sub-file" => {
+                        let raw = Self::value(args, &mut i, "--sub-file")?;
+                        cli.subtitle_files.push(raw.to_owned());
                     }
                     "max-seconds" => {
                         let raw = Self::value(args, &mut i, "--max-seconds")?;
@@ -134,6 +140,8 @@ mod tests {
             "12.5",
             "--max-seconds",
             "3",
+            "--sub-file",
+            "subs.srt",
             "a.mp4",
         ]))
         .unwrap();
@@ -141,6 +149,7 @@ mod tests {
         assert_eq!(cli.size, Some((3840, 2160)));
         assert_eq!(cli.start_time, Some(Duration::from_millis(12_500)));
         assert_eq!(cli.max_seconds, Some(3));
+        assert_eq!(cli.subtitle_files, vec!["subs.srt"]);
     }
 
     #[test]

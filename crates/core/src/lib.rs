@@ -14,5 +14,7 @@ pub mod session;
 pub mod settings;
 pub mod state;
 pub mod store;
+pub mod subtitles;
 pub mod telemetry;
+pub mod thumbnails;
 pub mod time;

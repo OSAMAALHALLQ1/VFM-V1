@@ -1,4 +1,4 @@
-//! Phase 3 player: Slint view wired to the Phase 1 engine on a worker thread.
+//! Phase 3/5 player: Slint view wired to the engine, with subtitles and thumbnails.
 
 slint::include_modules!();
 
@@ -8,7 +8,8 @@ mod i18n;
 use std::error::Error;
 use std::path::Path;
 use std::sync::mpsc::{self, Receiver, Sender};
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use i18n::{Catalog, Locale};
 use player_core::cli::Cli;
@@ -19,6 +20,8 @@ use player_core::session::Session;
 use player_core::settings::SettingsStore;
 use player_core::state::{PlaybackEvent, PlaybackState};
 use player_core::store::Store;
+use player_core::subtitles::{self, SubtitleDocument};
+use player_core::thumbnails::{ThumbnailCache, ThumbnailRequests};
 use player_core::time::{format_hms, progress};
 use slint::{Image, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode};
 use vlc_wrapper::{Instance, LibVlc, Media, MediaPlayer, PlayerEvent, VideoFrames};
@@ -32,6 +35,9 @@ struct UiUpdate {
     playing: bool,
     volume: f32,
     muted: bool,
+    audio_tracks: Vec<TrackItem>,
+    subtitle_tracks: Vec<TrackItem>,
+    time: Duration,
 }
 
 #[derive(Debug)]
@@ -43,6 +49,10 @@ enum Command {
     ToggleMute,
     Next,
     Previous,
+    SelectAudioTrack(i32),
+    SelectSubtitleTrack(i32),
+    SetSubtitleDelayMs(i64),
+    LoadSubtitle(String),
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -83,34 +93,50 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         "Inter"
     };
-    let theme = ui.global::<AppTheme>();
-    theme.set_locale(effective_locale.code().into());
-    theme.set_rtl(effective_locale.rtl());
-    theme.set_font_family(family.into());
-    let mini_theme = mini.global::<AppTheme>();
-    mini_theme.set_locale(effective_locale.code().into());
-    mini_theme.set_rtl(effective_locale.rtl());
-    mini_theme.set_font_family(family.into());
+    for theme in [ui.global::<AppTheme>(), mini.global::<AppTheme>()] {
+        theme.set_locale(effective_locale.code().into());
+        theme.set_rtl(effective_locale.rtl());
+        theme.set_font_family(family.into());
+    }
     if cli.rtl {
         ui.global::<AppTheme>().set_rtl(true);
         mini.global::<AppTheme>().set_rtl(true);
-    }
-    ui.set_media_title(cli.media.first().cloned().unwrap_or_default().into());
-    if std::env::var_os("PLAYER_KEEP_UI").is_some() {
-        ui.set_autohide(false);
     }
     if std::env::var_os("PLAYER_LIGHT").is_some() {
         ui.global::<AppTheme>().set_mode("light".into());
         mini.global::<AppTheme>().set_mode("light".into());
     }
+    ui.set_media_title(cli.media.first().cloned().unwrap_or_default().into());
+    if std::env::var_os("PLAYER_KEEP_UI").is_some() {
+        ui.set_autohide(false);
+    }
 
     let (cmd_tx, cmd_rx) = mpsc::channel::<Command>();
     let (ui_tx, ui_rx) = mpsc::channel::<UiUpdate>();
+    let (thumb_tx, thumb_rx) = mpsc::channel::<(u64, u64)>(); // (token, time_ms)
+    let (thumb_result_tx, thumb_result_rx) = mpsc::channel::<(u64, u64, Vec<u8>)>(); // (token, time_ms, rgba)
 
-    wire_callbacks(&ui, &mini, cmd_tx.clone());
+    let current_time = Arc::new(Mutex::new(Duration::ZERO));
+    let subtitle_delay = Arc::new(Mutex::new(0i64));
+    let subtitle_doc: Arc<Mutex<Option<SubtitleDocument>>> = Arc::new(Mutex::new(None));
+    if let Some(path) = cli.subtitle_files.first()
+        && let Ok(bytes) = std::fs::read(path)
+        && let Ok(doc) = subtitles::parse(&bytes)
+    {
+        *subtitle_doc.lock().unwrap() = Some(doc);
+    }
 
-    // Video frames are consumed on the UI thread with a short lease, then
-    // uploaded to Slint; libVLC is never touched from this thread.
+    let thumbnail_requests = Arc::new(Mutex::new(ThumbnailRequests::default()));
+    wire_callbacks(
+        &ui,
+        &mini,
+        cmd_tx.clone(),
+        &thumb_tx,
+        &subtitle_delay,
+        &thumbnail_requests,
+    );
+
+    // Video frames: UI thread only, libVLC untouched here.
     let video_frames = frames.clone();
     let ui_weak = ui.as_weak();
     let mini_weak = mini.as_weak();
@@ -136,6 +162,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
+    // UI state snapshots from the worker.
+    let time_for_subtitles = current_time.clone();
     let ui_weak = ui.as_weak();
     let state_timer = Timer::default();
     state_timer.start(TimerMode::Repeated, Duration::from_millis(50), move || {
@@ -147,27 +175,109 @@ fn main() -> Result<(), Box<dyn Error>> {
             ui.set_playing(update.playing);
             ui.set_volume(update.volume);
             ui.set_muted(update.muted);
+            ui.set_audio_tracks(model_from(update.audio_tracks));
+            ui.set_subtitle_tracks(model_from(update.subtitle_tracks));
+            *time_for_subtitles.lock().unwrap() = update.time;
             if !update.title.is_empty() {
                 ui.set_media_title(update.title.into());
             }
         }
     });
 
+    // Own subtitle renderer: active cues recomputed on every tick.
+    let doc_for_timer = subtitle_doc.clone();
+    let delay_for_timer = subtitle_delay.clone();
+    let time_for_render = current_time.clone();
+    let ui_weak = ui.as_weak();
+    let subtitle_timer = Timer::default();
+    subtitle_timer.start(TimerMode::Repeated, Duration::from_millis(80), move || {
+        let Some(ui) = ui_weak.upgrade() else { return };
+        let Some(doc) = doc_for_timer.lock().unwrap().as_ref().cloned() else {
+            return;
+        };
+        let delay = Duration::from_millis(delay_for_timer.lock().unwrap().max(0) as u64);
+        let text = doc
+            .active_cues(*time_for_render.lock().unwrap(), delay)
+            .into_iter()
+            .map(|cue| cue.text.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        ui.set_subtitle_text(text.into());
+        ui.set_subtitle_visible(!ui.get_subtitle_text().is_empty());
+    });
+
+    // Seek thumbnails: cache on UI thread, headless grabber on a worker.
+    let mut cache = ThumbnailCache::new(48);
+    let requests_for_timer = thumbnail_requests.clone();
+    let ui_weak = ui.as_weak();
+    let thumb_timer = Timer::default();
+    thumb_timer.start(TimerMode::Repeated, Duration::from_millis(40), move || {
+        let Some(ui) = ui_weak.upgrade() else { return };
+        while let Ok((token, ms, rgba)) = thumb_result_rx.try_recv() {
+            if !requests_for_timer.lock().unwrap().is_latest(token) {
+                continue;
+            }
+            cache.insert(ms, rgba);
+        }
+        if ui.get_seek_thumb_visible() {
+            let ms = (ui.get_progress() * 30_000.0) as u64; // approximate; worker uses requested ms
+            if let Some(bytes) = cache.get(ms) {
+                ui.set_seek_thumb(bytes_to_image(bytes));
+            }
+        }
+    });
+
+    let grabber_media = cli.media.first().cloned();
+    let grabber_lib = lib.clone();
+    let grabber = std::thread::Builder::new()
+        .name("thumb-grabber".into())
+        .spawn(move || {
+            thumbnail_worker(grabber_lib, grabber_media, thumb_rx, thumb_result_tx);
+        })?;
+
+    // Text subtitles are rendered by our own Slint renderer. Only unparsable /
+    // bitmap formats are handed to libVLC via Command::LoadSubtitle.
+    if subtitle_doc.lock().unwrap().is_none() {
+        for path in &cli.subtitle_files {
+            let _ = cmd_tx.send(Command::LoadSubtitle(path.clone()));
+        }
+    }
+    let _ = cmd_tx.send(Command::SetSubtitleDelayMs(0));
+
     let worker = std::thread::Builder::new()
         .name("vlc-worker".into())
         .spawn(move || {
-            worker_loop(
-                instance, player, events, session, frames, cli.media, cmd_rx, ui_tx,
-            );
+            worker_loop(instance, player, events, session, cli.media, cmd_rx, ui_tx);
         })?;
 
     ui.run()?;
     drop(cmd_tx);
     let _ = worker.join();
+    let _ = grabber.join();
     Ok(())
 }
 
-fn wire_callbacks(ui: &PlayerWindow, mini: &MiniPlayerWindow, tx: Sender<Command>) {
+fn model_from(tracks: Vec<TrackItem>) -> slint::ModelRc<TrackItem> {
+    slint::ModelRc::new(slint::VecModel::from(tracks))
+}
+
+fn bytes_to_image(bytes: &[u8]) -> Image {
+    let mut pixels = SharedPixelBuffer::<Rgba8Pixel>::new(160, 90);
+    let len = pixels.make_mut_bytes().len().min(bytes.len());
+    pixels.make_mut_bytes()[..len].copy_from_slice(&bytes[..len]);
+    Image::from_rgba8(pixels)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn wire_callbacks(
+    ui: &PlayerWindow,
+    mini: &MiniPlayerWindow,
+    tx: Sender<Command>,
+    thumb_tx: &Sender<(u64, u64)>,
+    subtitle_delay: &Arc<Mutex<i64>>,
+    requests: &Arc<Mutex<ThumbnailRequests>>,
+) {
+    let requests = requests.clone();
     let t = tx.clone();
     ui.on_toggle_play(move || {
         let _ = t.send(Command::TogglePause);
@@ -196,13 +306,83 @@ fn wire_callbacks(ui: &PlayerWindow, mini: &MiniPlayerWindow, tx: Sender<Command
     ui.on_previous(move || {
         let _ = t.send(Command::Previous);
     });
+    let t = tx.clone();
+    ui.on_select_audio_track(move |id| {
+        let _ = t.send(Command::SelectAudioTrack(id));
+    });
+    let t = tx.clone();
+    ui.on_select_subtitle_track(move |id| {
+        let _ = t.send(Command::SelectSubtitleTrack(id));
+    });
+    let t = tx.clone();
+    let delay = subtitle_delay.clone();
+    ui.on_adjust_subtitle_delay(move |ms| {
+        let mut d = delay.lock().unwrap();
+        *d = (*d + i64::from(ms)).clamp(-10_000, 10_000);
+        let _ = t.send(Command::SetSubtitleDelayMs(*d));
+    });
+    let t = tx.clone();
+    ui.on_load_external_subtitle(move || {
+        if let Ok(path) = std::env::var("PLAYER_SUBTITLE") {
+            let _ = t.send(Command::LoadSubtitle(path));
+        }
+    });
+
+    let ui_weak = ui.as_weak();
+    ui.on_toggle_audio_popover(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let open = !ui.get_audio_popover();
+            ui.set_audio_popover(open);
+            ui.set_subtitle_popover(false);
+        }
+    });
+    let ui_weak = ui.as_weak();
+    ui.on_toggle_subtitle_popover(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let open = !ui.get_subtitle_popover();
+            ui.set_subtitle_popover(open);
+            ui.set_audio_popover(false);
+        }
+    });
+    let tx_thumb = thumb_tx.clone();
+    let ui_weak = ui.as_weak();
+    ui.on_seek_hover(move |pos| {
+        let Some(ui) = ui_weak.upgrade() else { return };
+        if pos < 0.0 {
+            ui.set_seek_thumb_visible(false);
+            return;
+        }
+        let token = requests.lock().unwrap().request();
+        let ms = (pos * 30_000.0) as u64;
+        let _ = tx_thumb.send((token, ms));
+    });
+
+    let ui_weak = ui.as_weak();
+    ui.on_adjust_subtitle_size(move |delta| {
+        if let Some(ui) = ui_weak.upgrade() {
+            let size = (ui.get_subtitle_size() + delta as f32).clamp(10.0, 72.0);
+            ui.set_subtitle_size(size);
+        }
+    });
+    let ui_weak = ui.as_weak();
+    ui.on_cycle_subtitle_position(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let y = ui.get_subtitle_y();
+            ui.set_subtitle_y(if y > 0.7 {
+                0.5
+            } else if y > 0.3 {
+                0.08
+            } else {
+                0.86
+            });
+        }
+    });
 
     let ui_weak = ui.as_weak();
     ui.on_toggle_fullscreen(move || {
         if let Some(ui) = ui_weak.upgrade() {
             let window = ui.window();
-            let next = !window.is_fullscreen();
-            window.set_fullscreen(next);
+            window.set_fullscreen(!window.is_fullscreen());
             ui.invoke_show_ui("F".into());
         }
     });
@@ -219,8 +399,8 @@ fn wire_callbacks(ui: &PlayerWindow, mini: &MiniPlayerWindow, tx: Sender<Command
     let ui_weak = ui.as_weak();
     ui.on_toggle_sidebar(move || {
         if let Some(ui) = ui_weak.upgrade() {
-            let visible = !ui.get_sidebar_visible();
-            ui.set_sidebar_visible(visible);
+            let v = !ui.get_sidebar_visible();
+            ui.set_sidebar_visible(v);
         }
     });
     let ui_weak = ui.as_weak();
@@ -230,7 +410,6 @@ fn wire_callbacks(ui: &PlayerWindow, mini: &MiniPlayerWindow, tx: Sender<Command
             ui.invoke_show_ui(text);
         }
     });
-
     let ui_weak = ui.as_weak();
     ui.on_minimize_window(move || {
         if let Some(ui) = ui_weak.upgrade() {
@@ -254,18 +433,18 @@ fn wire_callbacks(ui: &PlayerWindow, mini: &MiniPlayerWindow, tx: Sender<Command
     });
 }
 
-#[allow(clippy::too_many_arguments)]
 fn worker_loop(
     instance: Instance,
     player: MediaPlayer,
     events: Receiver<PlayerEvent>,
     mut session: Session,
-    _frames: VideoFrames,
     media: Vec<String>,
     commands: Receiver<Command>,
     updates: Sender<UiUpdate>,
 ) {
     let mut index = 0usize;
+    let mut audio_tracks = Vec::new();
+    let mut subtitle_tracks = Vec::new();
     if let Some(uri) = media.first()
         && let Err(e) = start_item(&mut session, &instance, &player, uri)
     {
@@ -278,24 +457,15 @@ fn worker_loop(
             Ok(Command::SeekSecs(secs)) => {
                 let base = player.time().unwrap_or_default();
                 let step = Duration::from_secs(secs.unsigned_abs());
-                let target = if secs < 0 {
+                player.set_time(if secs < 0 {
                     base.saturating_sub(step)
                 } else {
                     base.saturating_add(step)
-                };
-                player.set_time(target);
+                });
             }
-            Ok(Command::SeekPos(p)) => {
-                if let Some(len) = player.length() {
-                    player.set_position(p);
-                    let _ = len;
-                }
-            }
+            Ok(Command::SeekPos(p)) => player.set_position(p),
             Ok(Command::SetVolume(v)) => player.set_volume((v * 200.0) as i32),
-            Ok(Command::ToggleMute) => {
-                let muted = !player.is_muted();
-                player.set_muted(muted);
-            }
+            Ok(Command::ToggleMute) => player.set_muted(!player.is_muted()),
             Ok(Command::Next) => {
                 if let Some(uri) = session.queue.next_uri().map(str::to_owned) {
                     index = media.iter().position(|u| u == &uri).unwrap_or(index + 1);
@@ -311,26 +481,29 @@ fn worker_loop(
                     eprintln!("{e}");
                 }
             }
+            Ok(Command::SelectAudioTrack(id)) => {
+                let _ = player.set_audio_track(id);
+            }
+            Ok(Command::SelectSubtitleTrack(id)) => {
+                let _ = player.set_subtitle_track(id);
+            }
+            Ok(Command::SetSubtitleDelayMs(ms)) => {
+                let _ = player.set_subtitle_delay_us(ms * 1000);
+            }
+            Ok(Command::LoadSubtitle(path)) => {
+                if let Err(e) = player.add_subtitle_file(Path::new(&path)) {
+                    eprintln!("subtitle: {e}");
+                }
+            }
             Err(mpsc::RecvTimeoutError::Disconnected) => break,
             Err(mpsc::RecvTimeoutError::Timeout) => {}
         }
 
         while let Ok(event) = events.try_recv() {
-            let mapped = match event {
-                PlayerEvent::Opening => PlaybackEvent::Opening,
-                PlayerEvent::Buffering(v) => PlaybackEvent::Buffering(v),
-                PlayerEvent::Playing => PlaybackEvent::Playing,
-                PlayerEvent::Paused => PlaybackEvent::Paused,
-                PlayerEvent::Stopped => PlaybackEvent::Stopped,
-                PlayerEvent::EndReached => PlaybackEvent::EndReached,
-                PlayerEvent::EncounteredError => PlaybackEvent::EncounteredError,
-                PlayerEvent::TimeChanged(t) => PlaybackEvent::TimeChanged(t),
-                PlayerEvent::PositionChanged(p) => PlaybackEvent::PositionChanged(p),
-                PlayerEvent::LengthChanged(l) => PlaybackEvent::LengthChanged(l),
-                PlayerEvent::VoutCount(n) => PlaybackEvent::VoutCount(n),
-            };
+            let mapped = map_event(&event);
             if matches!(mapped, PlaybackEvent::Playing) {
-                publish_metadata(&mut session, &player);
+                audio_tracks = to_items(player.audio_tracks(), player.audio_track());
+                subtitle_tracks = to_items(player.subtitle_tracks(), player.subtitle_track());
             }
             let effects = session.apply_event(mapped);
             if let Err(e) = session.commit_effects(&effects) {
@@ -345,10 +518,9 @@ fn worker_loop(
                     eprintln!("{e}");
                 }
             }
-
             let state = &session.state;
             let len = state.length;
-            let update = UiUpdate {
+            let _ = updates.send(UiUpdate {
                 title: media.get(index).cloned().unwrap_or_default(),
                 elapsed: format_hms(state.time),
                 total: len.map_or_else(|| "--:--:--".into(), format_hms),
@@ -356,11 +528,45 @@ fn worker_loop(
                 playing: state.status == PlaybackState::Playing,
                 volume: player.volume() as f32 / 200.0,
                 muted: player.is_muted(),
-            };
-            let _ = updates.send(update);
+                audio_tracks: audio_tracks.clone(),
+                subtitle_tracks: subtitle_tracks.clone(),
+                time: state.time,
+            });
         }
     }
     player.stop();
+}
+
+fn map_event(event: &PlayerEvent) -> PlaybackEvent {
+    match *event {
+        PlayerEvent::Opening => PlaybackEvent::Opening,
+        PlayerEvent::Buffering(v) => PlaybackEvent::Buffering(v),
+        PlayerEvent::Playing => PlaybackEvent::Playing,
+        PlayerEvent::Paused => PlaybackEvent::Paused,
+        PlayerEvent::Stopped => PlaybackEvent::Stopped,
+        PlayerEvent::EndReached => PlaybackEvent::EndReached,
+        PlayerEvent::EncounteredError => PlaybackEvent::EncounteredError,
+        PlayerEvent::TimeChanged(t) => PlaybackEvent::TimeChanged(t),
+        PlayerEvent::PositionChanged(p) => PlaybackEvent::PositionChanged(p),
+        PlayerEvent::LengthChanged(l) => PlaybackEvent::LengthChanged(l),
+        PlayerEvent::VoutCount(n) => PlaybackEvent::VoutCount(n),
+    }
+}
+
+fn to_items(tracks: Vec<vlc_wrapper::Track>, current: i32) -> Vec<TrackItem> {
+    tracks
+        .into_iter()
+        .map(|t| TrackItem {
+            id: t.id,
+            name: if t.name.is_empty() {
+                format!("Track {}", t.id)
+            } else {
+                t.name
+            }
+            .into(),
+            selected: t.id == current,
+        })
+        .collect()
 }
 
 fn start_item(
@@ -392,27 +598,60 @@ fn start_item(
     Ok(())
 }
 
-fn publish_metadata(session: &mut Session, player: &MediaPlayer) {
-    let to_info = |tracks: Vec<vlc_wrapper::Track>| -> Vec<player_core::model::TrackInfo> {
-        tracks
-            .into_iter()
-            .map(|t| player_core::model::TrackInfo {
-                id: t.id,
-                name: t.name,
-            })
-            .collect()
+/// Separate headless player: never touches the main player or its frames.
+fn thumbnail_worker(
+    lib: Arc<LibVlc>,
+    media_path: Option<String>,
+    requests: Receiver<(u64, u64)>,
+    results: Sender<(u64, u64, Vec<u8>)>,
+) {
+    let Some(path) = media_path else { return };
+    let Ok(instance) = Instance::new(lib, &["--intf", "dummy", "--no-osd", "--no-audio"]) else {
+        return;
     };
-    session.apply_event(PlaybackEvent::Tracks {
-        audio: to_info(player.audio_tracks()),
-        video: to_info(player.video_tracks()),
-        subtitle: to_info(player.subtitle_tracks()),
-    });
-    session.apply_event(PlaybackEvent::Chapters {
-        current: player.chapter(),
-        count: player.chapter_count(),
-    });
-    session.apply_event(PlaybackEvent::AudioDelayChanged(player.audio_delay_us()));
-    session.apply_event(PlaybackEvent::SubtitleDelayChanged(
-        player.subtitle_delay_us(),
-    ));
+    let Ok(mut player) = MediaPlayer::new(&instance) else {
+        return;
+    };
+    let Ok(frames) = VideoFrames::new(160, 90) else {
+        return;
+    };
+    if player.set_video_frames(frames.clone()).is_err() {
+        return;
+    }
+    let Ok(media) = Media::from_path(&instance, Path::new(&path)) else {
+        return;
+    };
+    player.set_media(&media);
+    if player.play().is_err() {
+        return;
+    }
+
+    while let Ok((token, time_ms)) = requests.recv() {
+        // Coalesce queued requests: only the newest token matters.
+        let mut latest = (token, time_ms);
+        while let Ok((t, ms)) = requests.try_recv() {
+            latest = (t, ms);
+        }
+        let (token, time_ms) = latest;
+        player.set_time(Duration::from_millis(time_ms));
+        let deadline = Instant::now() + Duration::from_millis(900);
+        loop {
+            if let Some(frame) = frames.latest() {
+                let mut pixels = SharedPixelBuffer::<Rgba8Pixel>::new(160, 90);
+                let (src, _) = frame.bgra_bytes().as_chunks::<4>();
+                let (dst, _) = pixels.make_mut_bytes().as_chunks_mut::<4>();
+                for (s, d) in src.iter().zip(dst.iter_mut()) {
+                    d.copy_from_slice(&[s[2], s[1], s[0], 255]);
+                }
+                drop(frame);
+                let _ = results.send((token, time_ms, pixels.make_mut_bytes().to_vec()));
+                break;
+            }
+            if Instant::now() >= deadline {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(16));
+        }
+    }
+    player.stop();
 }

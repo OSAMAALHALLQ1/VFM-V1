@@ -1,0 +1,11 @@
+1
+00:00:02,000 --> 00:00:06,000
+Subtitle rendered by the app, not by libVLC
+
+2
+00:00:07,000 --> 00:00:12,000
+Live size / position / delay can change without restarting
+
+3
+00:00:14,000 --> 00:00:20,000
+الترجمة العربية — نفس المحرك
