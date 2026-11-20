@@ -61,6 +61,9 @@ export component Toggle inherits Rectangle {
     callback toggled(bool);
     width: 220px;
     height: 32px;
+    border-radius: AppTheme.radius-sm;
+    border-width: fs.has-focus ? 2px : 0;
+    border-color: AppTheme.focus-ring;
     track := Rectangle {
         x: 0; y: 0; width: 40px; height: 22px; border-radius: AppTheme.radius-pill;
         background: root.checked ? AppTheme.accent : AppTheme.bg-a1;
@@ -71,6 +74,11 @@ export component Toggle inherits Rectangle {
         }
     }
     Text { x: 48px; text: root.label; color: AppTheme.fg-1; font-size: AppTheme.type-body; vertical-alignment: center; }
+    fs := FocusScope {
+        key-pressed(key-event) => {
+            if key-event.text == " " { root.checked = !root.checked; root.toggled(root.checked); accept; } else { reject; }
+        }
+    }
     TouchArea { clicked => { root.checked = !root.checked; root.toggled(root.checked); } }
 }
 
@@ -80,6 +88,17 @@ export component NumericSlider inherits Rectangle {
     in property <float> maximum: 100;
     in property <string> label: "";
     height: 48px;
+    min-width: 230px;
+    border-radius: AppTheme.radius-sm;
+    border-width: fs.has-focus ? 2px : 0;
+    border-color: AppTheme.focus-ring;
+    fs := FocusScope {
+        key-pressed(key-event) => {
+            if key-event.text == Key.LeftArrow { root.value = max(root.minimum, root.value - 1); accept; }
+            else if key-event.text == Key.RightArrow { root.value = min(root.maximum, root.value + 1); accept; }
+            else { reject; }
+        }
+    }
     Text { text: root.label; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; y: 0; }
     Text { text: Math.round(root.value); color: AppTheme.fg-1; font-size: AppTheme.type-caption; x: parent.width - 40px; y: 0; }
     Rectangle {
@@ -98,6 +117,10 @@ export component SeekBar inherits Rectangle {
     in property <string> total: "00:00:00";
     callback seek(float);
     height: 34px;
+    border-radius: AppTheme.radius-sm;
+    border-width: fs.has-focus ? 2px : 0;
+    border-color: AppTheme.focus-ring;
+    fs := FocusScope {}
     track := Rectangle {
         y: 8px; height: 10px; border-radius: AppTheme.radius-pill; background: AppTheme.bg-a1;
         fill := Rectangle { width: root.progress * parent.width; background: AppTheme.accent; border-radius: AppTheme.radius-pill; }
@@ -118,6 +141,10 @@ export component SeekBar inherits Rectangle {
 export component VolumeCone inherits Rectangle {
     in-out property <float> value: 0.75;
     width: 140px; height: 24px;
+    border-radius: AppTheme.radius-sm;
+    border-width: fs.has-focus ? 2px : 0;
+    border-color: AppTheme.focus-ring;
+    fs := FocusScope {}
     Rectangle {
         clip: true;
         Rectangle { width: parent.width * root.value; height: parent.height; background: AppTheme.accent; }
@@ -153,7 +180,10 @@ export component ListRow inherits Rectangle {
     callback activated();
     height: 56px;
     border-radius: AppTheme.radius-sm;
+    border-width: fs.has-focus ? 2px : 0;
+    border-color: AppTheme.focus-ring;
     background: touch.pressed ? AppTheme.pressed : touch.has-hover ? AppTheme.hover : root.selected ? AppTheme.bg-a2 : transparent;
+    fs := FocusScope {}
     Text { x: AppTheme.space-12; text: root.glyph; color: AppTheme.accent; font-size: AppTheme.type-title; vertical-alignment: center; width: 32px; }
     Text { x: 48px; y: 8px; text: root.title; color: AppTheme.fg-1; font-size: AppTheme.type-body; }
     Text { x: 48px; y: 30px; text: root.subtitle; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
@@ -216,6 +246,8 @@ export component ContextMenu inherits Rectangle {
 export component Dialog inherits Rectangle {
     in property <string> title;
     in property <string> body;
+    in property <string> accept-label: "OK";
+    in property <string> reject-label: "Cancel";
     callback accept();
     callback reject();
     Rectangle { background: #00000099; }
@@ -224,7 +256,53 @@ export component Dialog inherits Rectangle {
         background: AppTheme.bg-b1; border-radius: AppTheme.radius-xl; border-width: 1px; border-color: AppTheme.divider-bright;
         Text { x: AppTheme.space-20; y: AppTheme.space-20; text: root.title; color: AppTheme.fg-1; font-size: AppTheme.type-title; font-weight: 600; }
         Text { x: AppTheme.space-20; y: 60px; width: 340px; text: root.body; color: AppTheme.fg-a1; font-size: AppTheme.type-body; wrap: word-wrap; }
-        AppButton { x: AppTheme.space-20; y: 132px; label: "OK"; primary: true; activated => { root.accept(); } }
-        AppButton { x: 188px; y: 132px; label: "Cancel"; activated => { root.reject(); } }
+        AppButton { x: AppTheme.space-20; y: 132px; label: root.accept-label; primary: true; activated => { root.accept(); } }
+        AppButton { x: 188px; y: 132px; label: root.reject-label; activated => { root.reject(); } }
+    }
+}
+
+export component AppScrollBar inherits Rectangle {
+    in-out property <float> value: 0;
+    in property <float> page-size: 0.25;
+    width: 8px;
+    Rectangle {
+        background: AppTheme.bg-a1; border-radius: AppTheme.radius-pill;
+        thumb := Rectangle {
+            y: root.value * (parent.height - 28px);
+            height: max(28px, parent.height * root.page-size);
+            width: parent.width;
+            background: fs.has-focus ? AppTheme.accent : AppTheme.fg-a3;
+            border-radius: AppTheme.radius-pill;
+        }
+        fs := FocusScope {
+            key-pressed(key-event) => {
+                if key-event.text == Key.UpArrow { root.value = max(0, root.value - 0.1); accept; }
+                else if key-event.text == Key.DownArrow { root.value = min(1, root.value + 0.1); accept; }
+                else { reject; }
+            }
+        }
+        TouchArea {
+            moved => {
+                if self.pressed {
+                    root.value = clamp((self.mouse-y - thumb.height / 2) / (self.height - thumb.height), 0, 1);
+                }
+            }
+        }
+    }
+}
+
+export component Breadcrumb inherits Rectangle {
+    in property <[string]> segments: [];
+    callback selected(int);
+    height: 32px;
+    FlexboxLayout {
+        flex-direction: AppTheme.rtl ? row-reverse : row;
+        spacing: AppTheme.space-4;
+        for segment[index] in root.segments: Rectangle {
+            height: 28px; min-width: 110px; horizontal-stretch: 0; border-radius: AppTheme.radius-sm;
+            background: area.has-hover ? AppTheme.hover : transparent;
+            Text { text: segment; color: index == root.segments.length - 1 ? AppTheme.fg-1 : AppTheme.fg-a2; font-size: AppTheme.type-caption; vertical-alignment: center; x: AppTheme.space-8; width: parent.width - AppTheme.space-16; overflow: elide; }
+            area := TouchArea { clicked => { root.selected(index); } }
+        }
     }
 }

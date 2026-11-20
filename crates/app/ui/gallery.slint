@@ -4,6 +4,7 @@ import { Strings } from "i18n.slint";
 import {
     AppButton, IconButton, Toggle, NumericSlider, SeekBar, VolumeCone,
     Tabs, ListRow, Card, SearchField, Toast, ContextMenu, Dialog,
+    AppScrollBar, Breadcrumb,
 } from "components.slint";
 
 export component GalleryWindow inherits Window {
@@ -13,7 +14,7 @@ export component GalleryWindow inherits Window {
     min-width: 760px;
     min-height: 560px;
     background: AppTheme.bg-b1;
-    default-font-family: "Inter";
+    default-font-family: AppTheme.font-family;
 
     callback set-locale(string);
 
@@ -63,9 +64,9 @@ export component GalleryWindow inherits Window {
                 FlexboxLayout { flex-direction: AppTheme.rtl ? row-reverse : row;
                     spacing: AppTheme.space-24;
         
-                    NumericSlider { label: Strings.volume; value: 65; maximum: 200; }
+                    NumericSlider { label: Strings.volume; value: 65; maximum: 200; min-width: 240px; }
                     VolumeCone { value: 0.75; }
-                    SeekBar { progress: 0.42; elapsed: "00:12:35"; total: "00:30:00"; }
+                    SeekBar { progress: 0.42; elapsed: "00:12:35"; total: "00:30:00"; min-width: 320px; }
                 }
 
                 Text { text: Strings.section-inputs; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }
@@ -83,6 +84,19 @@ export component GalleryWindow inherits Window {
                     Card { title: Strings.card-title; caption: Strings.card-caption; }
                     ListRow { title: Strings.row-title; subtitle: Strings.row-subtitle; glyph: "▶"; selected: true; width: 360px; }
                     ListRow { title: Strings.row-title; subtitle: Strings.row-subtitle; glyph: "♪"; width: 360px; }
+                }
+
+                Text { text: Strings.section-icons; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }
+                FlexboxLayout {
+                    spacing: AppTheme.space-12;
+                    flex-direction: AppTheme.rtl ? row-reverse : row;
+                    Image { source: @image-url("../../../assets/icons/two-tone/settings.svg"); width: 24px; height: 24px; }
+                    Image { source: @image-url("../../../assets/icons/two-tone/subtitles.svg"); width: 24px; height: 24px; }
+                    Image { source: @image-url("../../../assets/icons/two-tone/queue.svg"); width: 24px; height: 24px; }
+                    Image { source: @image-url("../../../assets/icons/mono/play.svg"); width: 24px; height: 24px; }
+                    Image { source: @image-url("../../../assets/icons/mono/fullscreen.svg"); width: 24px; height: 24px; }
+                    Breadcrumb { segments: [Strings.section-collections, Strings.card-title, Strings.row-title]; width: 360px; }
+                    AppScrollBar { value: 0.35; height: 120px; }
                 }
 
                 Text { text: Strings.section-overlays; color: AppTheme.fg-2; font-size: AppTheme.type-title; font-weight: 600; }

@@ -82,6 +82,7 @@ pub fn apply(global: &crate::Strings<'_>, catalog: &Catalog) {
     global.set_section_inputs(catalog.get("section-inputs").into());
     global.set_section_collections(catalog.get("section-collections").into());
     global.set_section_overlays(catalog.get("section-overlays").into());
+    global.set_section_icons(catalog.get("section-icons").into());
     global.set_primary(catalog.get("primary").into());
     global.set_secondary(catalog.get("secondary").into());
     global.set_disabled(catalog.get("disabled").into());

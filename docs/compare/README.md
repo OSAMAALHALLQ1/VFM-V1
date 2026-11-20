@@ -1,5 +1,17 @@
 # Figma comparison captures
 
-Phase 2 deliverable: side-by-side captures of every gallery component and later every screen, at 100/125/150/200% DPI, light + dark, EN + AR. No comparisons are checked in yet — the gallery is the review harness and the design file has been decoded into `design/tokens.md` / `design/tokens.json`.
+Source Figma file: `VLC Redesign (Community).fig` (exported 2026-11-20). Token extraction and method: [`../design/tokens.md`](../design/tokens.md). PNG exports from Figma are in `design/`.
 
-Source Figma file: `VLC Redesign (Community).fig` (exported 2026-11-20). PNG exports already available in `design/`.
+## Captures
+
+| Capture | Configuration | Command |
+| :--- | :--- | :--- |
+| [gallery-dark-en.png](gallery-dark-en.png) | Dark, English, orange accent | `powershell -NoProfile -File scripts/capture-gallery.ps1 -Name gallery-dark-en` |
+| [gallery-light-ar.png](gallery-light-ar.png) | Light, Arabic RTL, orange accent | `powershell -NoProfile -File scripts/capture-gallery.ps1 -Name gallery-light-ar -GalleryArgs '--light --lang ar'` |
+
+Both captures are 1418×1022 physical pixels at this desktop's current scale and were inspected visually. They show that the palette, type scale, radii, states, RTL mirroring and bundled fonts render; the gallery is a component review harness, not a pixel copy of a Figma screen.
+
+## Still open
+
+- Side-by-side composite images against the corresponding Figma frames, including the 100/125/150/200% DPI matrix. Slint 1.19 exposes no public scale-factor override, so this requires either changing the Windows display scale between runs or adding a test-only renderer hook.
+- Component-level focus/disabled captures for every component state.

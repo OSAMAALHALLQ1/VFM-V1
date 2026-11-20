@@ -62,6 +62,14 @@ fn apply_locale(ui: &GalleryWindow, locale: Locale) {
     let theme = ui.global::<AppTheme>();
     theme.set_locale(catalog.locale().code().into());
     theme.set_rtl(catalog.locale().rtl());
+    theme.set_font_family(
+        if catalog.locale().rtl() {
+            "Noto Sans Arabic"
+        } else {
+            "Inter"
+        }
+        .into(),
+    );
 }
 
 fn parse_hex(s: &str) -> Option<Color> {
