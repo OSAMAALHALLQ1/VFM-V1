@@ -1,5 +1,26 @@
 # Testing
 
+## Phase 6 — settings sidebar & presets
+
+### Automated
+
+```powershell
+powershell -NoProfile -File scripts/cargo.ps1 fmt --all
+powershell -NoProfile -File scripts/cargo.ps1 clippy --workspace --all-targets -- -D warnings
+powershell -NoProfile -File scripts/cargo.ps1 test --workspace
+powershell -NoProfile -File scripts/build-local.ps1 -Action Build
+```
+
+Latest validation: **71 tests passing** (60 core including 2 preset tests, 5 wrapper, 6 i18n), Clippy clean, release build succeeds. All new libVLC symbols were verified against the 3.0.x headers and the bundled DLL's export table.
+
+### Preset auto-apply
+
+- [x] Presets persist as TOML in SQLite with a typed payload (subtitle/audio/video/playback).
+- [x] Auto-apply resolves the longest matching folder target for the current episode; applied on `start_item`, so the next episode in the same folder inherits it (unit-tested).
+- [x] Save / load / delete / rename / auto-apply commands are wired to the worker and libVLC (video adjust, EQ preset, rate, delays, aspect).
+- [x] Right sidebar with four tabs (Subtitles, Audio, Video, Playback) and preset panel, rendered in `docs/compare/player-settings.png`.
+- [ ] Live preview thumbnails for video-filter changes, draggable subtitle-timeline sync, "Add subtitles" dialog with auto-matching and per-episode manual matching.
+
 ## Application icon
 
 `assets/app-icon.ico` (original artwork supplied by the project owner, 256×256) is embedded into every `.exe` by `crates/app/build.rs` via `winres`, and bound to the Slint window `icon` property for player, mini player, library and gallery. Verified with `ExtractAssociatedIcon` on the three release binaries. The staged SDK's `rc.exe` path is supplied by `scripts/cargo.ps1` / `scripts/build-local.ps1`; no system-wide SDK install is required.

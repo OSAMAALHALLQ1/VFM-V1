@@ -25,7 +25,8 @@ opaque!(
     libvlc_instance_t,
     libvlc_media_t,
     libvlc_media_player_t,
-    libvlc_event_manager_t
+    libvlc_event_manager_t,
+    libvlc_equalizer_t
 );
 
 pub type libvlc_time_t = i64;
@@ -207,6 +208,18 @@ api! {
         c_uint,
         c_uint,
     ) -> c_int;
+    // libvlc_video_adjust_option_t values.
+    fn libvlc_video_set_adjust_float(*mut libvlc_media_player_t, c_uint, c_float);
+    fn libvlc_video_get_adjust_float(*mut libvlc_media_player_t, c_uint) -> c_float;
+    fn libvlc_video_set_adjust_int(*mut libvlc_media_player_t, c_uint, c_int);
+    fn libvlc_audio_equalizer_new() -> *mut libvlc_equalizer_t;
+    fn libvlc_audio_equalizer_new_from_preset(c_uint) -> *mut libvlc_equalizer_t;
+    fn libvlc_audio_equalizer_release(*mut libvlc_equalizer_t);
+    fn libvlc_audio_equalizer_get_preset_count() -> c_uint;
+    fn libvlc_audio_equalizer_get_preset_name(c_uint) -> *const c_char;
+    fn libvlc_audio_equalizer_set_preamp(*mut libvlc_equalizer_t, c_float) -> c_int;
+    fn libvlc_audio_equalizer_set_amp_at_index(*mut libvlc_equalizer_t, c_float, c_uint) -> c_int;
+    fn libvlc_media_player_set_equalizer(*mut libvlc_media_player_t, *mut libvlc_equalizer_t) -> c_int;
 
     fn libvlc_audio_get_mute(*mut libvlc_media_player_t) -> c_int;
     fn libvlc_audio_set_mute(*mut libvlc_media_player_t, c_int);

@@ -255,6 +255,7 @@ pub struct MediaPlayer {
     events_tx: Box<Sender<PlayerEvent>>,
     events_rx: Mutex<Option<Receiver<PlayerEvent>>>,
     video: Option<Box<video::VideoBridge>>,
+    equalizer: Option<*mut sys::libvlc_equalizer_t>,
     attached: usize,
 }
 
@@ -278,6 +279,7 @@ impl MediaPlayer {
             events_tx: Box::new(tx),
             events_rx: Mutex::new(Some(rx)),
             video: None,
+            equalizer: None,
             attached: 0,
         };
         // SAFETY: live player; the manager lives as long as the player.
@@ -625,6 +627,82 @@ impl MediaPlayer {
             .then_some(())
             .ok_or_else(|| VlcError::Call("media_player_add_slave".into()))
     }
+
+    // ---- Video adjustments and equalizer (Phase 6) ----------------------------
+
+    pub fn set_video_adjust(&self, option: VideoAdjust, value: f32) {
+        // SAFETY: live player; option is a valid libvlc_video_adjust_option_t.
+        unsafe { (self.lib.api().libvlc_video_set_adjust_float)(self.raw, option as u32, value) }
+    }
+
+    pub fn video_adjust(&self, option: VideoAdjust) -> f32 {
+        // SAFETY: live player; option is a valid libvlc_video_adjust_option_t.
+        unsafe { (self.lib.api().libvlc_video_get_adjust_float)(self.raw, option as u32) }
+    }
+
+    /// Friendly EQ preset names reported by libVLC (index is the list position).
+    pub fn equalizer_presets(&self) -> Vec<String> {
+        let api = self.lib.api();
+        // SAFETY: these global functions take no borrowed state.
+        let count = unsafe { (api.libvlc_audio_equalizer_get_preset_count)() };
+        (0..count)
+            .map(|i| {
+                // SAFETY: libVLC returns a static NUL-terminated name.
+                let ptr = unsafe { (api.libvlc_audio_equalizer_get_preset_name)(i) };
+                if ptr.is_null() {
+                    format!("Preset {i}")
+                } else {
+                    // SAFETY: non-null and NUL-terminated per the contract.
+                    unsafe { CStr::from_ptr(ptr) }
+                        .to_string_lossy()
+                        .into_owned()
+                }
+            })
+            .collect()
+    }
+
+    /// Applies a named libVLC preset, replacing the previous equalizer handle.
+    pub fn set_equalizer_preset(&mut self, index: u32) -> Result<(), VlcError> {
+        let api = self.lib.api();
+        // SAFETY: live player and a fresh handle owned by us.
+        let eq = unsafe { (api.libvlc_audio_equalizer_new_from_preset)(index) };
+        if eq.is_null() {
+            return Err(VlcError::Call("audio_equalizer_new_from_preset".into()));
+        }
+        // SAFETY: live player; libVLC retains the handle until replaced.
+        let rc = unsafe { (api.libvlc_media_player_set_equalizer)(self.raw, eq) };
+        if rc != 0 {
+            // SAFETY: `eq` was created by us and not retained after failure.
+            unsafe { (api.libvlc_audio_equalizer_release)(eq) };
+            return Err(VlcError::Call("media_player_set_equalizer".into()));
+        }
+        if let Some(old) = self.equalizer.replace(eq) {
+            // SAFETY: `old` was created by us and is no longer used by libVLC.
+            unsafe { (api.libvlc_audio_equalizer_release)(old) };
+        }
+        Ok(())
+    }
+
+    pub fn clear_equalizer(&mut self) {
+        if let Some(eq) = self.equalizer.take() {
+            let api = self.lib.api();
+            // SAFETY: live player; clearing releases our own handle.
+            unsafe {
+                (api.libvlc_media_player_set_equalizer)(self.raw, std::ptr::null_mut());
+                (api.libvlc_audio_equalizer_release)(eq);
+            }
+        }
+    }
+}
+
+/// `libvlc_video_adjust_option_t` values used by the video-effects tab.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VideoAdjust {
+    Contrast = 1,
+    Brightness = 2,
+    Hue = 3,
+    Saturation = 4,
+    Gamma = 5,
 }
 
 /// A named track reported by libVLC.
@@ -654,6 +732,10 @@ impl Drop for MediaPlayer {
         // running once it returns. Only then is callback state freed (field drop
         // after this function body).
         unsafe {
+            if let Some(eq) = self.equalizer.take() {
+                (api.libvlc_media_player_set_equalizer)(self.raw, std::ptr::null_mut());
+                (api.libvlc_audio_equalizer_release)(eq);
+            }
             (api.libvlc_media_player_stop)(self.raw);
             let em = (api.libvlc_media_player_event_manager)(self.raw);
             for ty in EVENTS.into_iter().take(self.attached) {

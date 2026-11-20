@@ -483,6 +483,17 @@ impl Store {
             .map_err(Into::into)
     }
 
+    pub fn rename_preset(&self, id: i64, name: &str) -> Result<()> {
+        if name.trim().is_empty() {
+            return Err(CoreError::Invalid("preset name is empty".into()));
+        }
+        self.conn.execute(
+            "UPDATE presets SET name = ?1 WHERE id = ?2",
+            params![name.trim(), id],
+        )?;
+        Ok(())
+    }
+
     pub fn delete_preset(&self, id: i64) -> Result<()> {
         self.conn
             .execute("DELETE FROM presets WHERE id = ?1", [id])?;

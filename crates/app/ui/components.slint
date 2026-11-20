@@ -89,6 +89,7 @@ export component NumericSlider inherits Rectangle {
     in property <float> minimum: 0;
     in property <float> maximum: 100;
     in property <string> label: "";
+    callback changed(float);
     height: 48px;
     min-width: 230px;
     border-radius: AppTheme.radius-sm;
@@ -96,8 +97,8 @@ export component NumericSlider inherits Rectangle {
     border-color: AppTheme.focus-ring;
     fs := FocusScope {
         key-pressed(key-event) => {
-            if key-event.text == Key.LeftArrow { root.value = max(root.minimum, root.value - 1); accept; }
-            else if key-event.text == Key.RightArrow { root.value = min(root.maximum, root.value + 1); accept; }
+            if key-event.text == Key.LeftArrow { root.value = max(root.minimum, root.value - 1); root.changed(root.value); accept; }
+            else if key-event.text == Key.RightArrow { root.value = min(root.maximum, root.value + 1); root.changed(root.value); accept; }
             else { reject; }
         }
     }
@@ -107,8 +108,8 @@ export component NumericSlider inherits Rectangle {
         y: 26px; height: 6px; border-radius: AppTheme.radius-pill; background: AppTheme.bg-a1;
         Rectangle { width: (root.value - root.minimum) / (root.maximum - root.minimum) * parent.width; background: AppTheme.accent; border-radius: AppTheme.radius-pill; }
         TouchArea {
-            clicked => { root.value = root.minimum + (self.mouse-x / self.width) * (root.maximum - root.minimum); }
-            moved => { if self.pressed { root.value = root.minimum + (self.mouse-x / self.width) * (root.maximum - root.minimum); } }
+            clicked => { root.value = root.minimum + (self.mouse-x / self.width) * (root.maximum - root.minimum); root.changed(root.value); }
+            moved => { if self.pressed { root.value = root.minimum + (self.mouse-x / self.width) * (root.maximum - root.minimum); root.changed(root.value); } }
         }
     }
 }
@@ -168,6 +169,7 @@ export component VolumeCone inherits Rectangle {
 export component Tabs inherits Rectangle {
     in property <[string]> labels: [];
     in-out property <int> current: 0;
+    callback selected(int);
     height: 40px;
     HorizontalLayout {
         spacing: AppTheme.space-4;
@@ -175,7 +177,7 @@ export component Tabs inherits Rectangle {
             background: index == root.current ? AppTheme.bg-accent-bright : transparent;
             border-radius: AppTheme.radius-md;
             Text { text: label; color: index == root.current ? AppTheme.accent : AppTheme.fg-a1; font-size: AppTheme.type-body; horizontal-alignment: center; vertical-alignment: center; }
-            TouchArea { clicked => { root.current = index; } }
+            TouchArea { clicked => { root.current = index; root.selected(index); } }
         }
     }
 }

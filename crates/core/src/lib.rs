@@ -8,6 +8,7 @@ pub mod error;
 pub mod model;
 pub mod platform;
 pub mod playlist;
+pub mod presets;
 pub mod queue;
 pub mod scanner;
 pub mod session;

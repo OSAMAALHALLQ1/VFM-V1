@@ -1,7 +1,7 @@
 // Phase 3 — player view with auto-hiding bars, OSD, context menu and mini player.
 import { AppTheme } from "theme.slint";
 import { Strings } from "i18n.slint";
-import { IconButton, SeekBar, VolumeCone, ContextMenu, ListRow } from "components.slint";
+import { IconButton, SeekBar, VolumeCone, ContextMenu, ListRow, Tabs, NumericSlider, AppButton, Toggle } from "components.slint";
 
 export struct TrackItem {
     id: int,
@@ -23,6 +23,7 @@ export component PlayerWindow inherits Window {
     in-out property <string> osd-text: "";
     in-out property <bool> context-menu-visible: false;
     in-out property <bool> sidebar-visible: false;
+    in-out property <int> sidebar-mode: 0; // 0 = library, 1 = settings
     in-out property <bool> autohide: true;
 
     // Phase 5 — subtitles, track popovers and seek thumbnails
@@ -64,6 +65,47 @@ export component PlayerWindow inherits Window {
     callback adjust-subtitle-size(int);
     callback cycle-subtitle-position();
     callback load-external-subtitle();
+
+    // Phase 6 — settings sidebar & presets
+    in-out property <int> settings-tab: 0;
+    in-out property <int> subtitle-delay-ms: 0;
+    in-out property <int> subtitle-size-pct: 100;
+    in-out property <int> subtitle-outline-px: 2;
+    in-out property <bool> subtitle-relative-size: true;
+    in-out property <int> subtitle-position-index: 0;
+    in-out property <int> audio-delay-ms: 0;
+    in property <[string]> equalizer-presets: [];
+    in-out property <int> equalizer-index: 0;
+    in-out property <float> video-brightness: 1;
+    in-out property <float> video-contrast: 1;
+    in-out property <float> video-saturation: 1;
+    in-out property <float> video-hue: 0;
+    in-out property <float> video-gamma: 1;
+    in-out property <float> video-zoom: 1;
+    in-out property <string> video-aspect: "";
+    in-out property <float> playback-speed: 1;
+    in-out property <int> sleep-minutes: 0;
+    in property <[string]> preset-names: [];
+    in-out property <string> preset-name-text: "";
+    in-out property <bool> preset-auto-apply: false;
+
+    callback select-settings-tab(int);
+    callback settings-subtitle-delay(float);
+    callback settings-subtitle-size(float);
+    callback settings-outline(float);
+    callback settings-relative(bool);
+    callback settings-position(int);
+    callback settings-audio-delay(float);
+    callback settings-equalizer(int);
+    callback settings-video(int, float);
+    callback settings-aspect(string);
+    callback settings-speed(float);
+    callback settings-sleep(float);
+    callback preset-save(string);
+    callback preset-load(string);
+    callback preset-rename(string);
+    callback preset-delete(string);
+    callback preset-auto(string, bool);
 
     // Custom title bar: WindowMoveArea keeps Windows drag/snap behaviour.
     no-frame: true;
@@ -258,11 +300,12 @@ export component PlayerWindow inherits Window {
         visible: root.context-menu-visible;
         x: AppTheme.rtl ? AppTheme.space-16 : parent.width - 196px;
         y: 52px;
-        items: [Strings.menu-play, Strings.menu-queue, Strings.menu-subtitles, Strings.menu-sidebar, Strings.menu-hide];
+        items: [Strings.menu-play, Strings.menu-queue, Strings.menu-subtitles, Strings.menu-sidebar, Strings.menu-settings, Strings.menu-hide];
         selected(index) => {
             if index == 0 { root.toggle-play(); }
-            else if index == 3 { root.toggle-sidebar(); }
-            else if index == 4 { root.ui-visible = false; }
+            else if index == 3 { root.sidebar_mode = 0; root.toggle-sidebar(); }
+            else if index == 4 { root.sidebar_mode = 1; root.sidebar_visible = true; }
+            else if index == 5 { root.ui-visible = false; }
             root.context-menu-visible = false;
         }
     }
@@ -279,7 +322,7 @@ export component PlayerWindow inherits Window {
 
     // ---- Compact library sidebar ----------------------------------------------
     Rectangle {
-        visible: root.sidebar-visible;
+        visible: root.sidebar-visible && root.sidebar_mode == 0;
         x: AppTheme.rtl ? 0 : parent.width - 288px;
         y: 36px; width: 288px; height: parent.height - 104px;
         background: AppTheme.bg-b1; border-radius: AppTheme.radius-lg;
@@ -288,6 +331,99 @@ export component PlayerWindow inherits Window {
         ListRow { x: AppTheme.space-8; y: 56px; width: 272px; title: Strings.row-title; subtitle: Strings.row-subtitle; glyph: "▶"; }
         ListRow { x: AppTheme.space-8; y: 116px; width: 272px; title: Strings.card-title; subtitle: Strings.card-caption; glyph: "♪"; }
         Text { x: AppTheme.space-12; y: 184px; text: Strings.menu-queue; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
+    }
+
+    // ---- Settings sidebar (4 tabs + presets) ----------------------------------
+    Rectangle {
+        visible: root.sidebar_visible && root.sidebar_mode == 1;
+        x: AppTheme.rtl ? 0 : parent.width - 320px;
+        y: 36px; width: 320px; height: parent.height - 104px;
+        background: AppTheme.bg-b1; border-radius: AppTheme.radius-lg;
+        border-width: 1px; border-color: AppTheme.divider-dim;
+        VerticalLayout {
+            padding: AppTheme.space-12; spacing: AppTheme.space-6;
+            Tabs {
+                labels: [Strings.tab_subtitles, Strings.tab_audio, Strings.tab_video, Strings.tab_playback];
+                current: root.settings_tab;
+                width: 296px;
+                // Forward the selected tab to Rust.
+                selected(index) => { root.select-settings-tab(index); }
+            }
+            Flickable {
+                vertical-stretch: 1; content-height: 460px;
+                VerticalLayout {
+                    spacing: AppTheme.space-8;
+
+                    if root.settings_tab == 0: Rectangle {
+                        height: 250px;
+                        VerticalLayout {
+                            spacing: AppTheme.space-4;
+                            Text { text: Strings.set_delay; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; }
+                            NumericSlider { label: "ms"; value: root.subtitle_delay_ms; minimum: -2000; maximum: 2000; height: 40px; min-width: 260px; changed(v) => { root.settings-subtitle-delay(v); } }
+                            Text { text: Strings.set_size; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; }
+                            NumericSlider { label: "%"; value: root.subtitle_size_pct; minimum: 50; maximum: 200; height: 40px; min-width: 260px; changed(v) => { root.settings-subtitle-size(v); } }
+                            Text { text: Strings.set_outline; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; }
+                            NumericSlider { label: "px"; value: root.subtitle_outline_px; minimum: 0; maximum: 6; height: 40px; min-width: 260px; changed(v) => { root.settings-outline(v); } }
+                            AppButton { label: Strings.set_relative; primary: root.subtitle_relative_size; activated => { root.settings-relative(!root.subtitle_relative_size); } }
+                            AppButton { label: Strings.set_timeline; activated => { root.settings-position(Math.mod(root.subtitle_position_index + 1, 3)); } }
+                        }
+                    }
+                    if root.settings_tab == 1: Rectangle {
+                        height: 210px;
+                        VerticalLayout {
+                            spacing: AppTheme.space-4;
+                            Text { text: Strings.set_delay; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; }
+                            NumericSlider { label: "ms"; value: root.audio_delay_ms; minimum: -2000; maximum: 2000; height: 40px; min-width: 260px; changed(v) => { root.settings-audio-delay(v); } }
+                            Text { text: Strings.set_equalizer; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; }
+                            Tabs { labels: root.equalizer_presets; current: root.equalizer_index; height: 36px; width: 280px; selected(index) => { root.settings-equalizer(index); } }
+                        }
+                    }
+                    if root.settings_tab == 2: Rectangle {
+                        height: 300px;
+                        VerticalLayout {
+                            spacing: AppTheme.space-2;
+                            NumericSlider { label: Strings.set_brightness; value: root.video_brightness; minimum: 0; maximum: 2; height: 36px; min-width: 260px; changed(v) => { root.settings-video(0, v); } }
+                            NumericSlider { label: Strings.set_contrast; value: root.video_contrast; minimum: 0; maximum: 2; height: 36px; min-width: 260px; changed(v) => { root.settings-video(1, v); } }
+                            NumericSlider { label: Strings.set_saturation; value: root.video_saturation; minimum: 0; maximum: 2; height: 36px; min-width: 260px; changed(v) => { root.settings-video(2, v); } }
+                            NumericSlider { label: Strings.set_hue; value: root.video_hue; minimum: -180; maximum: 180; height: 36px; min-width: 260px; changed(v) => { root.settings-video(3, v); } }
+                            NumericSlider { label: Strings.set_gamma; value: root.video_gamma; minimum: 0; maximum: 2; height: 36px; min-width: 260px; changed(v) => { root.settings-video(4, v); } }
+                            NumericSlider { label: Strings.set_zoom; value: root.video_zoom; minimum: 0.5; maximum: 4; height: 36px; min-width: 260px; changed(v) => { root.settings-video(5, v); } }
+                        }
+                    }
+                    if root.settings_tab == 3: Rectangle {
+                        height: 210px;
+                        VerticalLayout {
+                            spacing: AppTheme.space-4;
+                            NumericSlider { label: Strings.set_speed; value: root.playback_speed; minimum: 0.25; maximum: 4; height: 40px; min-width: 260px; changed(v) => { root.settings-speed(v); } }
+                            NumericSlider { label: Strings.set_sleep; value: root.sleep_minutes; minimum: 0; maximum: 180; height: 40px; min-width: 260px; changed(v) => { root.settings-sleep(v); } }
+                            Toggle { label: Strings.set_waveform; checked: false; }
+                            Toggle { label: Strings.set_metadata; checked: false; }
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                height: 150px; background: AppTheme.bg-b2; border-radius: AppTheme.radius-md;
+                VerticalLayout {
+                    padding: AppTheme.space-8; spacing: AppTheme.space-4;
+                    Text { text: Strings.preset_title; color: AppTheme.fg-1; font-size: AppTheme.type-body; font-weight: 600; }
+                    TextInput {
+                        text: root.preset_name_text;
+                        color: AppTheme.fg-1; font-size: AppTheme.type-caption;
+                        height: 28px;
+                        edited => { root.preset_name_text = self.text; }
+                    }
+                    FlexboxLayout {
+                        spacing: AppTheme.space-4;
+                        AppButton { label: Strings.preset_save; primary: true; activated => { root.preset-save(root.preset_name_text); } }
+                        AppButton { label: Strings.preset_load; activated => { root.preset-load(root.preset_name_text); } }
+                        AppButton { label: Strings.preset_delete; activated => { root.preset-delete(root.preset_name_text); } }
+                    }
+                    Toggle { label: Strings.preset_auto; checked: root.preset_auto_apply; toggled(checked) => { root.preset-auto(root.preset_name_text, checked); } }
+                }
+            }
+        }
     }
 
     // ---- Keyboard shortcut map ------------------------------------------------
