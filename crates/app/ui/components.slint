@@ -118,6 +118,8 @@ export component SeekBar inherits Rectangle {
     in-out property <float> progress: 0;
     in property <string> elapsed: "00:00:00";
     in property <string> total: "00:00:00";
+    in property <[float]> markers: [];
+    in property <[float]> waveform: [];
     callback seek(float);
     callback hover(float);
     height: 34px;
@@ -127,7 +129,21 @@ export component SeekBar inherits Rectangle {
     fs := FocusScope {}
     track := Rectangle {
         y: 8px; height: 10px; border-radius: AppTheme.radius-pill; background: AppTheme.bg-a1;
-        fill := Rectangle { width: root.progress * parent.width; background: AppTheme.accent; border-radius: AppTheme.radius-pill; }
+        if root.waveform.length > 0: Rectangle {
+            x: 0; y: 0; width: parent.width; height: parent.height;
+            FlexboxLayout {
+                spacing: 1px;
+                for peak in root.waveform: Rectangle {
+                    width: 2px; height: peak * parent.height;
+                    background: AppTheme.accent; border-radius: AppTheme.radius-pill;
+                }
+            }
+        }
+        fill := Rectangle { width: root.progress * parent.width; background: AppTheme.accent; border-radius: AppTheme.radius-pill; opacity: root.waveform.length > 0 ? 0.35 : 1; }
+        for marker in root.markers: Rectangle {
+            x: marker * parent.width - 1px; y: -2px; width: 2px; height: parent.height + 4px;
+            background: AppTheme.fg-1;
+        }
         knob := Rectangle { x: root.progress * parent.width - 6px; y: -1px; width: 12px; height: 12px; border-radius: AppTheme.radius-pill; background: AppTheme.accent-bright; }
         tip := Rectangle {
             visible: area.has-hover;

@@ -26,5 +26,8 @@ unsafe_op_in_unsafe_fn = "deny"
 [workspace.lints.clippy]
 undocumented_unsafe_blocks = "deny"
 
+[profile.dev]
+debug = 0
+
 [profile.release]
 debug = "line-tables-only"

@@ -154,6 +154,13 @@ pub fn apply(global: &crate::Strings<'_>, catalog: &Catalog) {
     global.set_preset_rename(catalog.get("preset-rename").into());
     global.set_preset_delete(catalog.get("preset-delete").into());
     global.set_preset_auto(catalog.get("preset-auto").into());
+    global.set_phase7_bookmarks(catalog.get("phase7-bookmarks").into());
+    global.set_phase7_chapters(catalog.get("phase7-chapters").into());
+    global.set_phase7_metadata(catalog.get("phase7-metadata").into());
+    global.set_phase7_waveform(catalog.get("phase7-waveform").into());
+    global.set_phase7_resume(catalog.get("phase7-resume").into());
+    global.set_phase7_resume_now(catalog.get("phase7-resume-now").into());
+    global.set_phase7_restart(catalog.get("phase7-restart").into());
     global.set_library_home(catalog.get("library-home").into());
     global.set_library_videos(catalog.get("library-videos").into());
     global.set_library_music(catalog.get("library-music").into());

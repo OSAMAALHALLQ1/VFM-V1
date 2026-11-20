@@ -107,6 +107,29 @@ export component PlayerWindow inherits Window {
     callback preset-delete(string);
     callback preset-auto(string, bool);
 
+    // Phase 7 — bookmarks, chapters, waveform, metadata, continue watching
+    in property <[string]> bookmarks: [];
+    in property <[float]> bookmark-positions: [];
+    in property <[float]> waveform: [];
+    in-out property <int> chapter-count: 0;
+    in-out property <int> chapter-current: 0;
+    in-out property <string> metadata-text: "";
+    in-out property <bool> metadata-visible: false;
+    in-out property <bool> waveform-visible: false;
+    in-out property <bool> resume-visible: false;
+    in-out property <int> resume-seconds: 5;
+    in-out property <string> resume-time: "";
+
+    callback add-bookmark();
+    callback rename-bookmark(int, string);
+    callback delete-bookmark(int);
+    callback select-bookmark(int);
+    callback select-chapter(int);
+    callback toggle-metadata();
+    callback toggle-waveform();
+    callback resume-playback();
+    callback dismiss-resume();
+
     // Custom title bar: WindowMoveArea keeps Windows drag/snap behaviour.
     no-frame: true;
     icon: @image-url("../../../assets/app-icon.png");
@@ -200,6 +223,8 @@ export component PlayerWindow inherits Window {
                 progress: root.progress;
                 elapsed: root.elapsed;
                 total: root.total;
+                markers: root.bookmark_positions;
+                waveform: root.waveform_visible ? root.waveform : [];
                 seek(pos) => { root.seek(pos); root.seek_thumb_visible = false; }
                 hover(pos) => {
                     root.seek_thumb_x = pos * self.width;
@@ -300,12 +325,14 @@ export component PlayerWindow inherits Window {
         visible: root.context-menu-visible;
         x: AppTheme.rtl ? AppTheme.space-16 : parent.width - 196px;
         y: 52px;
-        items: [Strings.menu-play, Strings.menu-queue, Strings.menu-subtitles, Strings.menu-sidebar, Strings.menu-settings, Strings.menu-hide];
+        items: [Strings.menu-play, Strings.menu-queue, Strings.menu-subtitles, Strings.menu-sidebar, Strings.menu-settings, Strings.phase7_metadata, Strings.phase7_waveform, Strings.menu-hide];
         selected(index) => {
             if index == 0 { root.toggle-play(); }
             else if index == 3 { root.sidebar_mode = 0; root.toggle-sidebar(); }
             else if index == 4 { root.sidebar_mode = 1; root.sidebar_visible = true; }
-            else if index == 5 { root.ui-visible = false; }
+            else if index == 5 { root.toggle-metadata(); }
+            else if index == 6 { root.toggle-waveform(); }
+            else if index == 7 { root.ui-visible = false; }
             root.context-menu-visible = false;
         }
     }
@@ -331,6 +358,29 @@ export component PlayerWindow inherits Window {
         ListRow { x: AppTheme.space-8; y: 56px; width: 272px; title: Strings.row-title; subtitle: Strings.row-subtitle; glyph: "▶"; }
         ListRow { x: AppTheme.space-8; y: 116px; width: 272px; title: Strings.card-title; subtitle: Strings.card-caption; glyph: "♪"; }
         Text { x: AppTheme.space-12; y: 184px; text: Strings.menu-queue; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
+    }
+
+    // ---- Metadata panel --------------------------------------------------------
+    Rectangle {
+        visible: root.metadata_visible;
+        x: AppTheme.space-20; y: 52px; width: 320px; height: 180px;
+        background: AppTheme.bg-b1; border-radius: AppTheme.radius-lg;
+        border-width: 1px; border-color: AppTheme.divider-bright;
+        Text { x: AppTheme.space-12; y: AppTheme.space-8; text: Strings.phase7_metadata; color: AppTheme.fg-1; font-size: AppTheme.type-title; font-weight: 600; }
+        Text { x: AppTheme.space-12; y: 44px; width: 296px; text: root.metadata_text; color: AppTheme.fg-a1; font-size: AppTheme.type-caption; wrap: word-wrap; }
+        IconButton { x: parent.width - 40px; y: 4px; image: @image-url("../../../assets/icons/mono/close.svg"); activated => { root.toggle-metadata(); } }
+    }
+
+    // ---- Continue-watching prompt ----------------------------------------------
+    Rectangle {
+        visible: root.resume_visible;
+        x: (parent.width - 380px) / 2; y: (parent.height - 110px) / 2;
+        width: 380px; height: 110px;
+        background: AppTheme.bg-b1; border-radius: AppTheme.radius-xl;
+        border-width: 1px; border-color: AppTheme.accent;
+        Text { x: AppTheme.space-16; y: AppTheme.space-8; text: Strings.phase7_resume + " · " + root.resume_time + " (" + root.resume_seconds + "s)"; color: AppTheme.fg-1; font-size: AppTheme.type-body; }
+        AppButton { x: AppTheme.space-16; y: 56px; label: Strings.phase7_resume_now; primary: true; activated => { root.resume-playback(); } }
+        AppButton { x: 196px; y: 56px; label: Strings.phase7_restart; activated => { root.dismiss-resume(); } }
     }
 
     // ---- Settings sidebar (4 tabs + presets) ----------------------------------
@@ -404,6 +454,22 @@ export component PlayerWindow inherits Window {
             }
 
             Rectangle {
+                height: 110px; background: AppTheme.bg-b2; border-radius: AppTheme.radius-md;
+                VerticalLayout {
+                    padding: AppTheme.space-8; spacing: AppTheme.space-2;
+                    Text { text: Strings.phase7_bookmarks; color: AppTheme.fg-1; font-size: AppTheme.type-caption; font-weight: 600; }
+                    for label[index] in root.bookmarks: Rectangle {
+                        height: 24px;
+                        Text { x: AppTheme.space-8; text: label; color: AppTheme.fg-2; font-size: AppTheme.type-caption; vertical-alignment: center; }
+                        IconButton { x: parent.width - 32px; y: 0; width: 28px; height: 24px; image: @image-url("../../../assets/icons/mono/remove.svg"); activated => { root.delete-bookmark(index); } }
+                        TouchArea { clicked => { root.select-bookmark(index); } }
+                    }
+                    Text { text: Strings.phase7_chapters + ": " + root.chapter_current + "/" + root.chapter_count; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
+                    AppButton { label: Strings.phase7_chapters; activated => { root.select-chapter(root.chapter_current + 1); } }
+                }
+            }
+
+            Rectangle {
                 height: 150px; background: AppTheme.bg-b2; border-radius: AppTheme.radius-md;
                 VerticalLayout {
                     padding: AppTheme.space-8; spacing: AppTheme.space-4;
@@ -438,6 +504,7 @@ export component PlayerWindow inherits Window {
             else if key-event.text == "m" { root.toggle-mute(); root.show-ui(Strings.osd-muted); accept; }
             else if key-event.text == "p" { root.toggle-pip(); accept; }
             else if key-event.text == "n" { root.next(); accept; }
+            else if key-event.text == "b" && key-event.modifiers.control { root.add-bookmark(); accept; }
             else if key-event.text == "b" { root.previous(); accept; }
             else if key-event.text == "o" { root.open-file(); accept; }
             else if key-event.text == "[" || key-event.text == "]" { root.adjust-subtitle-delay(key-event.text == "[" ? -100 : 100); root.show-ui(Strings.osd_subtitle_delay); accept; }

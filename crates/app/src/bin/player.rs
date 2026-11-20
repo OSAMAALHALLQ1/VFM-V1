@@ -44,6 +44,23 @@ struct UiUpdate {
     preset_names: Vec<SharedString>,
     equalizer_presets: Vec<SharedString>,
     applied_preset: Option<PresetPayload>,
+    bookmarks: Vec<SharedString>,
+    bookmark_positions: Vec<f32>,
+    waveform: Vec<f32>,
+    chapter_count: i32,
+    chapter_current: i32,
+    metadata_text: String,
+    resume: Option<Duration>,
+}
+
+#[derive(Debug, Default)]
+struct MediaExtras {
+    bookmarks: Vec<SharedString>,
+    bookmark_positions: Vec<f32>,
+    waveform: Vec<f32>,
+    metadata_text: String,
+    resume: Option<Duration>,
+    length: Duration,
 }
 
 #[derive(Debug)]
@@ -80,6 +97,11 @@ enum Command {
         target: String,
         enabled: bool,
     },
+    AddBookmark,
+    DeleteBookmark(i32),
+    SelectBookmark(i32),
+    SelectChapter(i32),
+    ResumePlayback,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -208,6 +230,19 @@ fn main() -> Result<(), Box<dyn Error>> {
             ui.set_muted(update.muted);
             ui.set_audio_tracks(model_from(update.audio_tracks));
             ui.set_subtitle_tracks(model_from(update.subtitle_tracks));
+            ui.set_bookmarks(slint::ModelRc::new(slint::VecModel::from(update.bookmarks)));
+            ui.set_bookmark_positions(slint::ModelRc::new(slint::VecModel::from(
+                update.bookmark_positions,
+            )));
+            ui.set_waveform(slint::ModelRc::new(slint::VecModel::from(update.waveform)));
+            ui.set_chapter_count(update.chapter_count);
+            ui.set_chapter_current(update.chapter_current);
+            ui.set_metadata_text(update.metadata_text.into());
+            if let Some(position) = update.resume {
+                ui.set_resume_time(player_core::time::format_hms(position).into());
+                ui.set_resume_seconds(5);
+                ui.set_resume_visible(true);
+            }
             ui.set_preset_names(slint::ModelRc::new(slint::VecModel::from(
                 update.preset_names,
             )));
@@ -255,6 +290,24 @@ fn main() -> Result<(), Box<dyn Error>> {
             .join("\n");
         ui.set_subtitle_text(text.into());
         ui.set_subtitle_visible(!ui.get_subtitle_text().is_empty());
+    });
+
+    // Continue-watching countdown: auto-resume after 5 seconds.
+    let weak = ui.as_weak();
+    let t = cmd_tx.clone();
+    let resume_timer = Timer::default();
+    resume_timer.start(TimerMode::Repeated, Duration::from_secs(1), move || {
+        let Some(ui) = weak.upgrade() else { return };
+        if !ui.get_resume_visible() {
+            return;
+        }
+        let left = ui.get_resume_seconds() - 1;
+        if left <= 0 {
+            ui.set_resume_visible(false);
+            let _ = t.send(Command::ResumePlayback);
+        } else {
+            ui.set_resume_seconds(left);
+        }
     });
 
     // Seek thumbnails: cache on UI thread, headless grabber on a worker.
@@ -587,6 +640,46 @@ fn wire_callbacks(
         });
     });
     let t = tx.clone();
+    ui.on_add_bookmark(move || {
+        let _ = t.send(Command::AddBookmark);
+    });
+    let t = tx.clone();
+    ui.on_delete_bookmark(move |i| {
+        let _ = t.send(Command::DeleteBookmark(i));
+    });
+    let t = tx.clone();
+    ui.on_select_bookmark(move |i| {
+        let _ = t.send(Command::SelectBookmark(i));
+    });
+    let t = tx.clone();
+    ui.on_select_chapter(move |i| {
+        let _ = t.send(Command::SelectChapter(i));
+    });
+    let t = tx.clone();
+    ui.on_resume_playback(move || {
+        let _ = t.send(Command::ResumePlayback);
+    });
+    let weak = ui.as_weak();
+    ui.on_dismiss_resume(move || {
+        if let Some(ui) = weak.upgrade() {
+            ui.set_resume_visible(false);
+        }
+    });
+    let weak = ui.as_weak();
+    ui.on_toggle_metadata(move || {
+        if let Some(ui) = weak.upgrade() {
+            let v = !ui.get_metadata_visible();
+            ui.set_metadata_visible(v);
+        }
+    });
+    let weak = ui.as_weak();
+    ui.on_toggle_waveform(move || {
+        if let Some(ui) = weak.upgrade() {
+            let v = !ui.get_waveform_visible();
+            ui.set_waveform_visible(v);
+        }
+    });
+    let t = tx.clone();
     ui.on_preset_load(move |name| {
         let _ = t.send(Command::LoadPreset(name.to_string()));
     });
@@ -631,6 +724,7 @@ fn worker_loop(
     let mut index = 0usize;
     let mut applied_preset: Option<PresetPayload> = None;
     let mut sleep_deadline: Option<Instant> = None;
+    let mut extras = MediaExtras::default();
     let mut audio_tracks = Vec::new();
     let mut subtitle_tracks = Vec::new();
     if let Some(uri) = media.first()
@@ -642,6 +736,7 @@ fn worker_loop(
             &mut applied_preset,
             &saved_presets,
             &eq_names,
+            &mut extras,
         )
     {
         eprintln!("playback start failed: {e}");
@@ -677,6 +772,7 @@ fn worker_loop(
                         &mut applied_preset,
                         &saved_presets,
                         &eq_names,
+                        &mut extras,
                     ) {
                         eprintln!("{e}");
                     }
@@ -692,6 +788,7 @@ fn worker_loop(
                         &mut applied_preset,
                         &saved_presets,
                         &eq_names,
+                        &mut extras,
                     )
                 {
                     eprintln!("{e}");
@@ -791,6 +888,41 @@ fn worker_loop(
                     saved_presets = presets::load_all(&session.store).unwrap_or(saved_presets);
                 }
             }
+            Ok(Command::AddBookmark) => {
+                if let Some(id) = session.current_media_id() {
+                    let pos = session.state.time.as_millis().min(i64::MAX as u128) as i64;
+                    if session.store.add_bookmark(id, pos, "Bookmark").is_ok()
+                        && let Some(uri) = media.get(index)
+                    {
+                        load_extras(&session, uri, &mut extras);
+                    }
+                }
+            }
+            Ok(Command::DeleteBookmark(i)) => {
+                if let Some(id) = session.current_media_id()
+                    && let Ok(items) = session.store.bookmarks(id)
+                    && let Some(item) = items.get(i.max(0) as usize)
+                {
+                    let _ = session.store.delete_bookmark(item.id);
+                    if let Some(uri) = media.get(index) {
+                        load_extras(&session, uri, &mut extras);
+                    }
+                }
+            }
+            Ok(Command::SelectBookmark(i)) => {
+                if let Some(id) = session.current_media_id()
+                    && let Ok(items) = session.store.bookmarks(id)
+                    && let Some(item) = items.get(i.max(0) as usize)
+                {
+                    player.set_time(Duration::from_millis(item.position_ms.max(0) as u64));
+                }
+            }
+            Ok(Command::SelectChapter(chapter)) => player.set_chapter(chapter),
+            Ok(Command::ResumePlayback) => {
+                if let Some(position) = extras.resume {
+                    player.set_time(position);
+                }
+            }
             Err(mpsc::RecvTimeoutError::Disconnected) => break,
             Err(mpsc::RecvTimeoutError::Timeout) => {}
         }
@@ -818,6 +950,7 @@ fn worker_loop(
                     &mut applied_preset,
                     &saved_presets,
                     &eq_names,
+                    &mut extras,
                 ) {
                     eprintln!("{e}");
                 }
@@ -844,6 +977,13 @@ fn worker_loop(
                     .map(|s| SharedString::from(s.as_str()))
                     .collect(),
                 applied_preset: applied_preset.take(),
+                bookmarks: extras.bookmarks.clone(),
+                bookmark_positions: extras.bookmark_positions.clone(),
+                waveform: extras.waveform.clone(),
+                chapter_count: player.chapter_count(),
+                chapter_current: player.chapter(),
+                metadata_text: extras.metadata_text.clone(),
+                resume: extras.resume.take(),
             });
         }
     }
@@ -913,6 +1053,7 @@ fn to_items(tracks: Vec<vlc_wrapper::Track>, current: i32) -> Vec<TrackItem> {
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn start_item(
     session: &mut Session,
     instance: &Instance,
@@ -921,6 +1062,7 @@ fn start_item(
     applied: &mut Option<PresetPayload>,
     saved_presets: &[presets::Preset],
     eq_names: &[String],
+    extras: &mut MediaExtras,
 ) -> Result<(), Box<dyn Error>> {
     // A preset whose target folder contains this episode applies automatically.
     if let Some(preset) = presets::auto_apply_for(uri, saved_presets) {
@@ -947,7 +1089,46 @@ fn start_item(
         player.set_time(pos);
     }
     player.play()?;
+    load_extras(session, uri, extras);
     Ok(())
+}
+
+fn load_extras(session: &Session, uri: &str, extras: &mut MediaExtras) {
+    *extras = MediaExtras::default();
+    if let Some(id) = session.current_media_id()
+        && let Ok(bookmarks) = session.store.bookmarks(id)
+    {
+            extras.length = bookmarks
+                .last()
+                .map(|b| Duration::from_millis(b.position_ms.max(1000) as u64))
+                .unwrap_or(Duration::from_secs(1));
+            for b in bookmarks {
+                extras
+                    .bookmark_positions
+                    .push(b.position_ms as f32 / extras.length.as_millis().max(1) as f32);
+                extras.bookmarks.push(
+                    format!(
+                        "{} {}",
+                        player_core::time::format_hms(Duration::from_millis(
+                            b.position_ms.max(0) as u64
+                        )),
+                        b.label
+                    )
+                    .into(),
+                );
+            }
+        }
+    extras.resume = session.resume_position(uri).ok().flatten();
+    if uri.contains("://") {
+        return;
+    }
+    let path = Path::new(uri);
+    let meta = player_core::metadata::read(path).unwrap_or_default();
+    extras.metadata_text = format!(
+        "{}\n{}\n{}\n{} · {} · {}s",
+        meta.title, meta.artist, meta.album, meta.genre, meta.year, meta.duration_secs
+    );
+    extras.waveform = player_core::waveform::compute_peaks(path, 96).unwrap_or_default();
 }
 
 /// Separate headless player: never touches the main player or its frames.

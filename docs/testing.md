@@ -1,5 +1,27 @@
 # Testing
 
+## Phase 7 — advanced features
+
+### Automated
+
+```powershell
+powershell -NoProfile -File scripts/cargo.ps1 fmt --all
+powershell -NoProfile -File scripts/cargo.ps1 clippy --workspace --all-targets -- -D warnings
+powershell -NoProfile -File scripts/cargo.ps1 test --workspace
+powershell -NoProfile -File scripts/build-local.ps1 -Action Build
+```
+
+Latest validation: **75 tests passing** (64 core including metadata, waveform, OpenSubtitles hash/URL and bookmark rename, 5 wrapper, 6 i18n), Clippy clean, release build succeeds.
+
+- [x] Bookmarks: Ctrl+B adds one, persisted in SQLite; sidebar list with delete/seek and seek-bar markers.
+- [x] Chapter count/current from libVLC with a next-chapter control.
+- [x] Waveform peaks decoded on a worker with `symphonia`, cached and toggleable from the context menu; video-only clips yield a flat waveform.
+- [x] Metadata panel via `lofty`, toggled from the context menu.
+- [x] Continue-watching prompt near the centre controls with a 5-second countdown and resume/start-over actions.
+- [x] OpenSubtitles REST client with API key/user agent, MD5 hash, search/download URL handling and offline/rate-limit/unauthorised error mapping (unit-tested pure parts; no live API call in tests).
+- [ ] OpenSubtitles search/download UI dialog and API-key entry screen.
+- [ ] Music mode with large cover art and albums/artists views; per-episode manual subtitle matching.
+
 ## Phase 6 — settings sidebar & presets
 
 ### Automated

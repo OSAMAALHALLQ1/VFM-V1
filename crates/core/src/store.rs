@@ -445,6 +445,17 @@ impl Store {
             .map_err(Into::into)
     }
 
+    pub fn rename_bookmark(&self, id: i64, label: &str) -> Result<()> {
+        if label.trim().is_empty() {
+            return Err(CoreError::Invalid("bookmark label is empty".into()));
+        }
+        self.conn.execute(
+            "UPDATE bookmarks SET label = ?1 WHERE id = ?2",
+            params![label.trim(), id],
+        )?;
+        Ok(())
+    }
+
     pub fn delete_bookmark(&self, id: i64) -> Result<()> {
         self.conn
             .execute("DELETE FROM bookmarks WHERE id = ?1", [id])?;
