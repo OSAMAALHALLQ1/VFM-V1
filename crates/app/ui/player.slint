@@ -1,0 +1,243 @@
+// Phase 3 — player view with auto-hiding bars, OSD, context menu and mini player.
+import { AppTheme } from "theme.slint";
+import { Strings } from "i18n.slint";
+import { IconButton, SeekBar, VolumeCone, ContextMenu, ListRow } from "components.slint";
+
+export component PlayerWindow inherits Window {
+    in property <image> video-frame;
+    in-out property <string> media-title: "";
+    in-out property <string> elapsed: "00:00:00";
+    in-out property <string> total: "00:00:00";
+    in-out property <float> progress: 0;
+    in-out property <bool> playing: false;
+    in-out property <bool> muted: false;
+    in-out property <float> volume: 0.75;
+    in-out property <bool> ui-visible: true;
+    in-out property <bool> osd-visible: false;
+    in-out property <string> osd-text: "";
+    in-out property <bool> context-menu-visible: false;
+    in-out property <bool> sidebar-visible: false;
+    in-out property <bool> autohide: true;
+
+    callback toggle-play();
+    callback toggle-fullscreen();
+    callback toggle-pip();
+    callback seek(float);
+    callback relative-seek(int);
+    callback set-volume(float);
+    callback toggle-mute();
+    callback toggle-sidebar();
+    callback next();
+    callback previous();
+    callback open-file();
+
+    default-font-family: AppTheme.font-family;
+    background: AppTheme.bg-b2;
+    title: root.media-title;
+    preferred-width: 1280px;
+    preferred-height: 720px;
+
+    hide-timer := Timer {
+        interval: 2600ms;
+        triggered => { if root.autohide { root.ui-visible = false; } }
+    }
+    osd-timer := Timer {
+        interval: 1500ms;
+        triggered => { root.osd-visible = false; }
+    }
+
+    public function show-ui(text: string) {
+        root.ui-visible = true;
+        hide-timer.restart();
+        if text != "" {
+            root.osd-text = text;
+            root.osd-visible = true;
+            osd-timer.restart();
+        }
+    }
+
+    Image {
+        source: root.video-frame;
+        width: parent.width; height: parent.height;
+        image-fit: contain;
+    }
+
+    video-touch := TouchArea {
+        clicked => {
+            root.toggle-play();
+            root.context-menu-visible = false;
+            root.show-ui("");
+        }
+        double-clicked => { root.toggle-fullscreen(); }
+        pointer-event(event) => {
+            if event.kind == PointerEventKind.down && event.button == PointerEventButton.right {
+                root.context-menu-visible = !root.context-menu-visible;
+                root.show-ui("");
+            }
+        }
+        scroll-event(event) => {
+            root.set-volume(clamp(root.volume + (event.delta-y > 0 ? 0.05 : -0.05), 0, 1));
+            root.show-ui(Strings.osd-volume);
+            accept;
+        }
+    }
+
+    // ---- Top bar (menu, title, PiP, fullscreen) -------------------------------
+    top := Rectangle {
+        visible: root.ui-visible;
+        x: 0; y: 0; width: parent.width; height: 44px;
+        background: AppTheme.overlay-bg;
+        FlexboxLayout {
+            flex-direction: AppTheme.rtl ? row-reverse : row;
+            padding-left: AppTheme.space-16; padding-right: AppTheme.space-16;
+            spacing: AppTheme.space-12;
+            IconButton { image: @image-url("../../../assets/icons/mono/more.svg"); tip: Strings.menu-settings; activated => { root.context-menu-visible = true; } }
+            IconButton { image: @image-url("../../../assets/icons/mono/sidebar.svg"); tip: Strings.menu-sidebar; activated => { root.toggle-sidebar(); } }
+            Text {
+                text: root.media-title;
+                color: AppTheme.fg-1; font-size: AppTheme.type-body;
+                horizontal-alignment: AppTheme.rtl ? right : left;
+                overflow: elide; horizontal-stretch: 1;
+            }
+            IconButton { image: @image-url("../../../assets/icons/mono/maximize.svg"); tip: Strings.menu-pip; activated => { root.toggle-pip(); } }
+            IconButton { image: @image-url("../../../assets/icons/mono/fullscreen.svg"); tip: Strings.menu-fullscreen; activated => { root.toggle-fullscreen(); } }
+        }
+    }
+
+    // ---- Bottom control bar ---------------------------------------------------
+    bottom := Rectangle {
+        visible: root.ui-visible;
+        x: 0; y: parent.height - 92px; width: parent.width; height: 92px;
+        background: AppTheme.overlay-bg;
+        VerticalLayout {
+            padding-left: AppTheme.space-16; padding-right: AppTheme.space-16;
+            padding-top: AppTheme.space-6; padding-bottom: AppTheme.space-6;
+            spacing: AppTheme.space-4;
+            SeekBar {
+                progress: root.progress;
+                elapsed: root.elapsed;
+                total: root.total;
+                seek(pos) => { root.seek(pos); }
+            }
+            FlexboxLayout {
+                flex-direction: AppTheme.rtl ? row-reverse : row;
+                spacing: AppTheme.space-12;
+                IconButton { image: @image-url("../../../assets/icons/mono/previous.svg"); tip: Strings.previous; activated => { root.previous(); } }
+                Rectangle {
+                    width: 56px; height: 34px; border-radius: AppTheme.radius-md;
+                    background: AppTheme.accent;
+                    Text { text: root.playing ? "❚❚" : "▶"; color: AppTheme.on-accent; font-size: AppTheme.type-body; horizontal-alignment: center; vertical-alignment: center; }
+                    TouchArea { clicked => { root.toggle-play(); } }
+                }
+                IconButton { image: @image-url("../../../assets/icons/mono/next.svg"); tip: Strings.next; activated => { root.next(); } }
+                Text { text: root.elapsed; color: AppTheme.fg-1; font-size: AppTheme.type-caption; vertical-alignment: center; }
+                Rectangle { horizontal-stretch: 1; }
+                Text { text: root.total; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; vertical-alignment: center; }
+                IconButton { image: @image-url("../../../assets/icons/mono/volume.svg"); tip: Strings.menu-audio; active: root.muted; activated => { root.toggle-mute(); } }
+                VolumeCone { value: root.volume; width: 112px; }
+                IconButton { image: @image-url("../../../assets/icons/mono/audio.svg"); tip: Strings.menu-audio; }
+                IconButton { image: @image-url("../../../assets/icons/mono/subtitles.svg"); tip: Strings.menu-subtitles; }
+                IconButton { image: @image-url("../../../assets/icons/mono/settings.svg"); tip: Strings.menu-settings; }
+                IconButton { image: @image-url("../../../assets/icons/mono/sidebar.svg"); tip: Strings.menu-sidebar; activated => { root.toggle-sidebar(); } }
+            }
+        }
+    }
+
+    // ---- Edge hover strips: show the bars when the pointer approaches ---------
+    Rectangle {
+        x: 0; y: 0; width: parent.width; height: 28px;
+        TouchArea { pointer-event(event) => { if event.kind == PointerEventKind.move { root.show-ui(""); } } }
+    }
+    Rectangle {
+        x: 0; y: parent.height - 28px; width: parent.width; height: 28px;
+        TouchArea { pointer-event(event) => { if event.kind == PointerEventKind.move { root.show-ui(""); } } }
+    }
+
+    // ---- Context menu ---------------------------------------------------------
+    ContextMenu {
+        visible: root.context-menu-visible;
+        x: AppTheme.rtl ? AppTheme.space-16 : parent.width - 196px;
+        y: 52px;
+        items: [Strings.menu-play, Strings.menu-queue, Strings.menu-subtitles, Strings.menu-sidebar, Strings.menu-hide];
+        selected(index) => {
+            if index == 0 { root.toggle-play(); }
+            else if index == 3 { root.toggle-sidebar(); }
+            else if index == 4 { root.ui-visible = false; }
+            root.context-menu-visible = false;
+        }
+    }
+
+    // ---- Shortcut / state OSD -------------------------------------------------
+    Rectangle {
+        visible: root.osd-visible;
+        x: (parent.width - 260px) / 2; y: (parent.height - 56px) / 2;
+        width: 260px; height: 56px;
+        background: AppTheme.bg-b1; border-radius: AppTheme.radius-lg;
+        border-width: 1px; border-color: AppTheme.divider-bright;
+        Text { text: root.osd-text; color: AppTheme.fg-1; font-size: AppTheme.type-title; horizontal-alignment: center; vertical-alignment: center; }
+    }
+
+    // ---- Compact library sidebar ----------------------------------------------
+    Rectangle {
+        visible: root.sidebar-visible;
+        x: AppTheme.rtl ? 0 : parent.width - 288px;
+        y: 44px; width: 288px; height: parent.height - 136px;
+        background: AppTheme.bg-b1; border-radius: AppTheme.radius-lg;
+        border-width: 1px; border-color: AppTheme.divider-dim;
+        Text { x: AppTheme.space-12; y: AppTheme.space-12; text: Strings.menu-sidebar; color: AppTheme.fg-1; font-size: AppTheme.type-title; font-weight: 600; }
+        ListRow { x: AppTheme.space-8; y: 56px; width: 272px; title: Strings.row-title; subtitle: Strings.row-subtitle; glyph: "▶"; }
+        ListRow { x: AppTheme.space-8; y: 116px; width: 272px; title: Strings.card-title; subtitle: Strings.card-caption; glyph: "♪"; }
+        Text { x: AppTheme.space-12; y: 184px; text: Strings.menu-queue; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; }
+    }
+
+    // ---- Keyboard shortcut map ------------------------------------------------
+    FocusScope {
+        key-pressed(key-event) => {
+            if key-event.text == " " || key-event.text == "k" { root.toggle-play(); root.show-ui(root.playing ? Strings.osd-paused : Strings.osd-playing); accept; }
+            else if key-event.text == Key.LeftArrow { root.relative-seek(-5); root.show-ui("« 5s"); accept; }
+            else if key-event.text == Key.RightArrow { root.relative-seek(5); root.show-ui("5s »"); accept; }
+            else if key-event.text == Key.UpArrow { root.set-volume(clamp(root.volume + 0.05, 0, 1)); root.show-ui(Strings.osd-volume); accept; }
+            else if key-event.text == Key.DownArrow { root.set-volume(clamp(root.volume - 0.05, 0, 1)); root.show-ui(Strings.osd-volume); accept; }
+            else if key-event.text == "f" { root.toggle-fullscreen(); accept; }
+            else if key-event.text == "m" { root.toggle-mute(); root.show-ui(Strings.osd-muted); accept; }
+            else if key-event.text == "p" { root.toggle-pip(); accept; }
+            else if key-event.text == "n" { root.next(); accept; }
+            else if key-event.text == "b" { root.previous(); accept; }
+            else if key-event.text == "o" { root.open-file(); accept; }
+            else if key-event.text == Key.Escape { root.ui-visible = false; root.context-menu-visible = false; accept; }
+            else { reject; }
+        }
+    }
+}
+
+export component MiniPlayerWindow inherits Window {
+    in property <image> video-frame;
+    in-out property <string> media-title: "";
+    in-out property <bool> playing: false;
+    in-out property <float> progress: 0;
+    callback toggle-play();
+    callback toggle-pip();
+    callback close-pip();
+    default-font-family: AppTheme.font-family;
+    background: AppTheme.bg-b1;
+    title: Strings.menu-pip;
+    preferred-width: 420px;
+    preferred-height: 270px;
+    VerticalLayout {
+        Rectangle {
+            vertical-stretch: 1;
+            Image { source: root.video-frame; width: parent.width; height: parent.height; image-fit: contain; }
+            TouchArea { double-clicked => { root.toggle-pip(); } }
+        }
+        Rectangle {
+            height: 48px; background: AppTheme.overlay-bg;
+            FlexboxLayout {
+                spacing: AppTheme.space-8; padding-left: AppTheme.space-8; padding-right: AppTheme.space-8;
+                IconButton { glyph: root.playing ? "❚❚" : "▶"; activated => { root.toggle-play(); } }
+                Text { text: root.media-title; color: AppTheme.fg-1; font-size: AppTheme.type-caption; overflow: elide; horizontal-stretch: 1; }
+                IconButton { glyph: "⛶"; activated => { root.toggle-pip(); } }
+                IconButton { glyph: "×"; activated => { root.close-pip(); } }
+            }
+        }
+    }
+}

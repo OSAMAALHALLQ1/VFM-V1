@@ -98,9 +98,24 @@ pub fn apply(global: &crate::Strings<'_>, catalog: &Catalog) {
     global.set_context_menu(catalog.get("context-menu").into());
     global.set_dialog(catalog.get("dialog").into());
     global.set_toast(catalog.get("toast").into());
+    global.set_previous(catalog.get("previous").into());
+    global.set_next(catalog.get("next").into());
     global.set_menu_play(catalog.get("menu-play").into());
     global.set_menu_queue(catalog.get("menu-queue").into());
     global.set_menu_hide(catalog.get("menu-hide").into());
+    global.set_menu_settings(catalog.get("menu-settings").into());
+    global.set_menu_open(catalog.get("menu-open").into());
+    global.set_menu_subtitles(catalog.get("menu-subtitles").into());
+    global.set_menu_audio(catalog.get("menu-audio").into());
+    global.set_menu_video(catalog.get("menu-video").into());
+    global.set_menu_pip(catalog.get("menu-pip").into());
+    global.set_menu_fullscreen(catalog.get("menu-fullscreen").into());
+    global.set_menu_sidebar(catalog.get("menu-sidebar").into());
+    global.set_osd_paused(catalog.get("osd-paused").into());
+    global.set_osd_playing(catalog.get("osd-playing").into());
+    global.set_osd_muted(catalog.get("osd-muted").into());
+    global.set_osd_volume(catalog.get("osd-volume").into());
+    global.set_osd_open_later(catalog.get("osd-open-later").into());
 }
 
 #[cfg(test)]

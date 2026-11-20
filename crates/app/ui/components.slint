@@ -39,6 +39,7 @@ export component AppButton inherits Rectangle {
 
 export component IconButton inherits Rectangle {
     in property <string> glyph;
+    in property <image> image;
     in property <string> tip: "";
     in property <bool> active: false;
     in property <bool> disabled: false;
@@ -49,7 +50,8 @@ export component IconButton inherits Rectangle {
     background: touch.pressed ? AppTheme.pressed : touch.has-hover ? AppTheme.hover
         : root.active ? AppTheme.bg-accent-bright : transparent;
     opacity: root.disabled ? 0.4 : 1;
-    Text { text: root.glyph; color: root.active ? AppTheme.accent : AppTheme.fg-a2; font-size: AppTheme.type-title; horizontal-alignment: center; vertical-alignment: center; }
+    Text { visible: root.image.width == 0; text: root.glyph; color: root.active ? AppTheme.accent : AppTheme.fg-a2; font-size: AppTheme.type-title; horizontal-alignment: center; vertical-alignment: center; }
+    Image { visible: root.image.width > 0; source: root.image; width: 20px; height: 20px; x: (parent.width - self.width) / 2; y: (parent.height - self.height) / 2; }
     touch := TouchArea { enabled: !root.disabled; clicked => { root.activated(); }
         Text { text: root.tip; color: AppTheme.fg-a2; font-size: AppTheme.type-caption; visible: parent.has-hover && root.tip != ""; y: parent.height + AppTheme.space-4; }
     }

@@ -77,6 +77,8 @@ export global AppTheme {
     out property <color> pressed: root.accent-dim;
     out property <color> focus-ring: root.accent-bright;
     out property <color> on-accent: #101010;
+    // Translucent scrim for overlays over live video (not a literal in screens).
+    out property <color> overlay-bg: root.mode == "light" ? root.l-bg-b1 : root.d-bg-b1;
 
     // Spacing / radii / type scale (px in Figma)
     out property <length> space-2: 2px;

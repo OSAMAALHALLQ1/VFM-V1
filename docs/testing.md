@@ -1,5 +1,36 @@
 # Testing
 
+## Phase 3 — player view
+
+### Automated
+
+```powershell
+powershell -NoProfile -File scripts/cargo.ps1 fmt --all
+powershell -NoProfile -File scripts/cargo.ps1 clippy --workspace --all-targets -- -D warnings
+powershell -NoProfile -File scripts/cargo.ps1 test --workspace
+powershell -NoProfile -File scripts/cargo.ps1 build --release -p player-app --bin player
+```
+
+Latest validation: formatting/Clippy clean, **56 tests passing** (49 core, 5 wrapper, 2 i18n), release build succeeds.
+
+### Player smoke
+
+```powershell
+$env:LIBVLC_PATH = (Resolve-Path 'third_party/vlc-3.0.24').Path
+.\target\release\player.exe .\media\h264_1080p60.mp4
+```
+
+- [x] Real video renders with auto-hiding top/bottom overlay bars; the bars reappear when the pointer approaches the top/bottom edge.
+- [x] Bottom bar: enlarged play between previous/next on the left, seek bar with time tooltip, volume cone, audio/subtitle/settings/sidebar/fullscreen on the right (matches `design/Player-2.png` layout intent).
+- [x] Top bar: menu, title, mini-player and fullscreen controls; native Windows title bar retained so snap/resize/maximize keep working.
+- [x] Right-click context menu with "Hide UI"; click-to-play, double-click fullscreen, mouse-wheel volume.
+- [x] Shortcut map: Space/K play-pause, arrows seek/volume, F fullscreen, M mute, P mini player, N/B next/previous, O open, Escape hides UI. OSD shows the key/action.
+- [x] Arabic RTL mirrors both bars and all control positions; light theme resolves overlay colours from tokens.
+- [x] Live captures in `docs/compare/` inspected visually.
+- [ ] Pixel-perfect match to Figma (control bar height/glyph shapes/volume cone styling still differ).
+- [ ] Real keyboard-input automation and multi-monitor/DPI matrix (no public Slint scale-factor override).
+- [ ] File drag & drop into the window and a native open-file dialog (Slint has no public file-drop hook; dialog is Phase 9).
+
 ## Phase 2 — design system (foundation)
 
 ### Inputs extracted from the Figma source
